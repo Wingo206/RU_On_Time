@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "971497768554",
+    "project_id": "ru-on-time",
+    "storage_bucket": "ru-on-time.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:971497768554:android:e8238a52ac853e62f5ac13",
+        "android_client_info": {
+          "package_name": "com.example.ru_on_time"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "971497768554-h00o3i1lcui3r8e12bn1vlo609nj16so.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2jM0Uh5ynzlzqgccebQ5n82n-oapyAYc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "971497768554-h00o3i1lcui3r8e12bn1vlo609nj16so.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
