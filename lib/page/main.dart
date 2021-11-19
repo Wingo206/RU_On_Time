@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'RU On Time',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
       home: FutureBuilder(
         future:_fbApp,
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
               print ('Failed to initialize Firebase ${snapshot.error.toString()}');
               return Text('Something went wrong!');
             } else if (snapshot.hasData) {
-              return MyHomePage(title: 'Flutter Demo Home Page');
+              return MyHomePage(title: 'RU On Time Home Page');
             } else {
               return Center(
                 child: CircularProgressIndicator(),
@@ -64,6 +64,11 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  final screens = [
+    Center(child: Text('Calendar', style: TextStyle(fontSize: 60))),
+    Center(child: Text('Assignments', style: TextStyle(fontSize: 60))),
+    Center(child: Text('Leaderboard', style: TextStyle(fontSize: 60))),
+  ];
 
   void _incrementCounter() {
     setState(() {
@@ -84,6 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    int currentIndex = 0;
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -93,6 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
+
         child: Column(
           // Column is also a layout widget. It takes a list of children and
           // arranges them vertically. By default, it sizes itself to fit its
@@ -111,8 +118,25 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
+              'The image of the pet goes here',
             ),
+            TextButton(
+                style: ButtonStyle(
+                  foregroundColor:
+                      MaterialStateProperty.all<Color>(Colors.white),
+                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                    (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.hovered))
+                        return Colors.redAccent;
+                      if (states.contains(MaterialState.focused) ||
+                          states.contains(MaterialState.pressed))
+                        return Colors.white.withOpacity(0.1);
+                      return null; // Defer to the widget's default.
+                    },
+                  ),
+                ),
+                onPressed: () {},
+                child: Text('Add Assignment')),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
@@ -120,6 +144,31 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
+
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: currentIndex,
+        onTap: (index) => setState(() => currentIndex = index),
+        iconSize: 50,
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today_rounded),
+            label: 'Calendar',
+            backgroundColor: Colors.blue,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment_rounded),
+            label: 'Submissions',
+            backgroundColor: Colors.blue,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.leaderboard_rounded),
+            label: 'Leaderboard',
+            backgroundColor: Colors.blue,
+          ),
+        ],
+      ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
