@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ru_on_time/sign_in.dart';
+
+import 'authentication_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,27 +16,51 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'RU On Time',
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-      ),
-      home: FutureBuilder(
-        future:_fbApp,
-        builder: (context, snapshot) {
+    return MultiProvider(
+      providers: [
+        Provider<AuthenticationService> (
+          create: (_) => AuthenticationService(FirebaseAuth.instance),
+        ),
+
+        StreamProvider(
+          create: (context) => context.read<AuthenticationService>().authStateChanges,
+          initialData: null,
+        ),
+      ],
+      child: MaterialApp(
+        title: 'RU On Time',
+        theme: ThemeData(
+          primarySwatch: Colors.red,
+        ),
+        home: FutureBuilder(
+          future:_fbApp,
+          builder: (context, snapshot) {
             if (snapshot.hasError) {
               print ('Failed to initialize Firebase ${snapshot.error.toString()}');
               return Text('Something went wrong!');
             } else if (snapshot.hasData) {
-              return MyHomePage(title: 'RU On Time Home Page');
+              return AuthenticationWrapper();
             } else {
               return Center(
                 child: CircularProgressIndicator(),
               );
             }
-        },
+          },
+        )
       )
     );
+  }
+}
+
+class AuthenticationWrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final firebaseUser = context.watch<User?>();
+    if(firebaseUser != null) {
+      return MyHomePage(title: 'RU On Time Home Page');
+    } else {
+      return SignInPage();
+    }
   }
 }
 
@@ -92,6 +121,11 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
+            ElevatedButton(
+                onPressed: () {
+                  context.read<AuthenticationService>().signOut();
+                },
+                child: Text("JANKY SIGN OUT BUTTON")),
           ],
         ),
       ),
