@@ -3,6 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ru_on_time/page/assignments.dart';
+import 'package:ru_on_time/page/calendar.dart';
+import 'package:ru_on_time/page/leaderboard.dart';
 import 'package:ru_on_time/sign_in.dart';
 
 import 'authentication_service.dart';
@@ -15,6 +18,7 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -59,8 +63,33 @@ class AuthenticationWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
-    if(firebaseUser != null) {
-      return MyHomePage(title: 'RU On Time Home Page');
+    if (firebaseUser != null) {
+      Future<DataManager> _dataManager = DataManager.create(
+          FirebaseAuth.instance);
+
+      return FutureBuilder<DataManager>(
+        future: _dataManager,
+        builder:
+            (BuildContext context, AsyncSnapshot<DataManager> snapshot) {
+          if (snapshot.hasError) {
+            return Text("Something went wrong");
+          }
+          //if (snapshot.hasData && snapshot.data!.userData == null) {
+          //  return Text("Failed to fetch user data");
+          //}
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Provider<DataManager>(
+              /*The provider adds the instance of the Data Manager to the context,
+              so anything within the context of the provider (The home page) can
+              access the Data Manager by doing context.read<DataManager>(), like
+              in the AssignmentsPage's build method.*/
+                create: (_) => snapshot.data!,
+                child: MyHomePage(title: 'RU On Time Home Page'),
+            );
+          }
+          return Text("Loading...");
+        },
+      );
     } else {
       return SignInPage();
     }
@@ -79,9 +108,9 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   int currentIndex = 0;
   final screens = [
-    Center(child: Text('Calendar', style: TextStyle(fontSize: 60))),
-    Center(child: Text('Assignments', style: TextStyle(fontSize: 60))),
-    Center(child: Text('Leaderboard', style: TextStyle(fontSize: 60))),
+    CalendarPage(),
+    AssignmentsPage(),
+    LeaderboardPage(),
   ];
 
   void _incrementCounter() {
@@ -92,7 +121,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    Future<DataManager> _dataManager = DataManager.create(FirebaseAuth.instance);
 
     return Scaffold(
       appBar: AppBar(
@@ -103,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             screens[currentIndex],
-            Text('The image of the pet goes here'),
+            /*Text('The image of the pet goes here'),
             TextButton(
               style: ButtonStyle(
                 foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
@@ -124,29 +152,12 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
-            ),
+            ),*/
             ElevatedButton(
                 onPressed: () {
                   context.read<AuthenticationService>().signOut();
                 },
                 child: Text("JANKY SIGN OUT BUTTON")),
-            //AssignmentList(FirebaseAuth.instance),
-            FutureBuilder<DataManager>(
-              future: _dataManager,
-              builder:
-                  (BuildContext context, AsyncSnapshot<DataManager> snapshot) {
-                if (snapshot.hasError) {
-                  return Text("Something went wrong");
-                }
-                //if (snapshot.hasData && snapshot.data!.userData == null) {
-                //  return Text("Failed to fetch user data");
-                //}
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return AssignmentList(snapshot.data!);
-                }
-                return Text("Loading...");
-              },
-            ),
           ],
         ),
       ),
@@ -179,48 +190,6 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ),
-    );
-  }
-}
-
-
-class AssignmentList extends StatelessWidget {
-  final DataManager _dataManager;
-  AssignmentList(this._dataManager);
-  @override
-  Widget build(BuildContext context) {
-    QueryDocumentSnapshot doc = _dataManager.userData;
-    return Column(
-        children:[
-          Text(doc.id + ", username: " + doc.get('username') + ", level: " + doc.get('level')),
-          Text("Assignment list:"),
-          StreamBuilder<QuerySnapshot>(
-              stream: _dataManager.assignmentStream,
-              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasError) {
-                  return Text('Something went wrong');
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Text("Loading");
-                }
-                return SizedBox(
-                  height:200.0,
-                  child:ListView(
-                    itemExtent: 80,
-                    children: snapshot.data!.docs.map((DocumentSnapshot document) => buildListItem(context, document)).toList(),
-                  ),
-                );
-              }
-          ),
-        ]
-    );
-  }
-
-  Widget buildListItem(BuildContext context, DocumentSnapshot document) {
-    Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-    return ListTile(
-      title: Text(data['name']),
-      subtitle: Text(data['due date']),
     );
   }
 }
