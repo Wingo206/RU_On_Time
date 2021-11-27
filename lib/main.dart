@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ru_on_time/sign_in.dart';
 
 import 'authentication_service.dart';
+import 'data_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,12 +20,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<AuthenticationService> (
+        Provider<AuthenticationService>(
           create: (_) => AuthenticationService(FirebaseAuth.instance),
         ),
-
         StreamProvider(
-          create: (context) => context.read<AuthenticationService>().authStateChanges,
+          create: (context) =>
+              context.read<AuthenticationService>().authStateChanges,
           initialData: null,
         ),
       ],
@@ -34,10 +35,11 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.red,
         ),
         home: FutureBuilder(
-          future:_fbApp,
+          future: _fbApp,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              print ('Failed to initialize Firebase ${snapshot.error.toString()}');
+              print(
+                  'Failed to initialize Firebase ${snapshot.error.toString()}');
               return Text('Something went wrong!');
             } else if (snapshot.hasData) {
               return AuthenticationWrapper();
@@ -47,8 +49,8 @@ class MyApp extends StatelessWidget {
               );
             }
           },
-        )
-      )
+        ),
+      ),
     );
   }
 }
@@ -90,6 +92,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     int currentIndex = 0;
+    Future<DataManager> _dataManager = DataManager.create(FirebaseAuth.instance);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -98,26 +102,24 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'The image of the pet goes here',
-            ),
+            Text('The image of the pet goes here'),
             TextButton(
-                style: ButtonStyle(
-                  foregroundColor:
-                      MaterialStateProperty.all<Color>(Colors.white),
-                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.hovered))
-                        return Colors.redAccent;
-                      if (states.contains(MaterialState.focused) ||
-                          states.contains(MaterialState.pressed))
-                        return Colors.white.withOpacity(0.1);
-                      return null; // Defer to the widget's default.
-                    },
-                  ),
+              style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered))
+                      return Colors.redAccent;
+                    if (states.contains(MaterialState.focused) ||
+                        states.contains(MaterialState.pressed))
+                      return Colors.white.withOpacity(0.1);
+                    return null; // Defer to the widget's default.
+                  },
                 ),
-                onPressed: () {},
-                child: Text('Add Assignment')),
+              ),
+              onPressed: () {},
+              child: Text('Add Assignment'),
+            ),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
@@ -126,13 +128,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () {
                   context.read<AuthenticationService>().signOut();
                 },
-                child: Text("JANKY SIGN OUT BUTTON")
+                child: Text("JANKY SIGN OUT BUTTON")),
+            //AssignmentList(FirebaseAuth.instance),
+            FutureBuilder<DataManager>(
+              future: _dataManager,
+              builder:
+                  (BuildContext context, AsyncSnapshot<DataManager> snapshot) {
+                if (snapshot.hasError) {
+                  return Text("Something went wrong");
+                }
+                //if (snapshot.hasData && snapshot.data!.userData == null) {
+                //  return Text("Failed to fetch user data");
+                //}
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return AssignmentList(snapshot.data!);
+                }
+                return Text("Loading...");
+              },
             ),
-            AssignmentList(FirebaseAuth.instance),
           ],
         ),
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: currentIndex,
@@ -166,6 +182,49 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+
+class AssignmentList extends StatelessWidget {
+  final DataManager _dataManager;
+  AssignmentList(this._dataManager);
+  @override
+  Widget build(BuildContext context) {
+    QueryDocumentSnapshot doc = _dataManager.userData;
+    Stream<QuerySnapshot> assignmentStream = FirebaseFirestore.instance.collection('users').doc(doc.id).collection('assignments').snapshots();
+    return Column(
+        children:[
+          Text(doc.id + ", username: " + doc.get('username') + ", level: " + doc.get('level')),
+          Text("Assignment list:"),
+          StreamBuilder<QuerySnapshot>(
+              stream: assignmentStream,
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Something went wrong');
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Text("Loading");
+                }
+                return SizedBox(
+                  height:200.0,
+                  child:ListView(
+                    itemExtent: 80,
+                    children: snapshot.data!.docs.map((DocumentSnapshot document) => buildListItem(context, document)).toList(),
+                  ),
+                );
+              }
+          ),
+        ]
+    );
+  }
+
+  Widget buildListItem(BuildContext context, DocumentSnapshot document) {
+    Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+    return ListTile(
+      title: Text(data['name']),
+      subtitle: Text(data['due date']),
+    );
+  }
+}
+/*
 class AssignmentList extends StatelessWidget {
   final FirebaseAuth _firebaseAuth;
   AssignmentList(this._firebaseAuth);
@@ -227,3 +286,4 @@ class AssignmentList extends StatelessWidget {
     );
   }
 }
+ */
