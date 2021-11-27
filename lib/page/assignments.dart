@@ -28,8 +28,12 @@ class AssignmentList extends StatelessWidget {
     QueryDocumentSnapshot doc = _dataManager.userData;
     return Column(
         children:[
-          Text(doc.id + ", username: " + doc.get('username') + ", level: " + doc.get('level')),
-          Text("Assignment list:"),
+          ElevatedButton(
+            onPressed: () {
+              print("lmao I dont do anything right now");
+            },
+            child: Text("New Assignment"),
+          ),
           StreamBuilder<QuerySnapshot>(
               stream: _dataManager.assignmentStream,
               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {

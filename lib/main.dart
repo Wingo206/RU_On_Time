@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ru_on_time/page/assignments.dart';
 import 'package:ru_on_time/page/calendar.dart';
 import 'package:ru_on_time/page/leaderboard.dart';
+import 'package:ru_on_time/page/pets.dart';
+import 'package:ru_on_time/page/profile.dart';
 import 'package:ru_on_time/sign_in.dart';
 
 import 'authentication_service.dart';
@@ -108,6 +109,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   int currentIndex = 0;
   final screens = [
+    ProfilePage(),
+    PetsPage(),
     CalendarPage(),
     AssignmentsPage(),
     LeaderboardPage(),
@@ -127,39 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            screens[currentIndex],
-            /*Text('The image of the pet goes here'),
-            TextButton(
-              style: ButtonStyle(
-                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                  (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.hovered))
-                      return Colors.redAccent;
-                    if (states.contains(MaterialState.focused) ||
-                        states.contains(MaterialState.pressed))
-                      return Colors.white.withOpacity(0.1);
-                    return null; // Defer to the widget's default.
-                  },
-                ),
-              ),
-              onPressed: () {},
-              child: Text('Add Assignment'),
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),*/
-            ElevatedButton(
-                onPressed: () {
-                  context.read<AuthenticationService>().signOut();
-                },
-                child: Text("JANKY SIGN OUT BUTTON")),
-          ],
-        ),
+          child: screens[currentIndex],
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -168,13 +139,23 @@ class _MyHomePageState extends State<MyHomePage> {
         iconSize: 50,
         items: [
           BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+            backgroundColor: Colors.blue,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.house_outlined),
+            label: 'Pets',
+            backgroundColor: Colors.blue,
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today_rounded),
             label: 'Calendar',
             backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.assignment_rounded),
-            label: 'Submissions',
+            label: 'Assign',
             backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
