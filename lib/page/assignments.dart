@@ -25,7 +25,6 @@ class AssignmentList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     DataManager _dataManager = context.read<DataManager>();
-    QueryDocumentSnapshot doc = _dataManager.userData;
     return Column(
         children:[
           ElevatedButton(
