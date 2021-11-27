@@ -77,6 +77,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  int currentIndex = 0;
   final screens = [
     Center(child: Text('Calendar', style: TextStyle(fontSize: 60))),
     Center(child: Text('Assignments', style: TextStyle(fontSize: 60))),
@@ -91,7 +92,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    int currentIndex = 0;
     Future<DataManager> _dataManager = DataManager.create(FirebaseAuth.instance);
 
     return Scaffold(
@@ -102,6 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            screens[currentIndex],
             Text('The image of the pet goes here'),
             TextButton(
               style: ButtonStyle(
@@ -189,13 +190,12 @@ class AssignmentList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     QueryDocumentSnapshot doc = _dataManager.userData;
-    Stream<QuerySnapshot> assignmentStream = FirebaseFirestore.instance.collection('users').doc(doc.id).collection('assignments').snapshots();
     return Column(
         children:[
           Text(doc.id + ", username: " + doc.get('username') + ", level: " + doc.get('level')),
           Text("Assignment list:"),
           StreamBuilder<QuerySnapshot>(
-              stream: assignmentStream,
+              stream: _dataManager.assignmentStream,
               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasError) {
                   return Text('Something went wrong');
@@ -224,66 +224,3 @@ class AssignmentList extends StatelessWidget {
     );
   }
 }
-/*
-class AssignmentList extends StatelessWidget {
-  final FirebaseAuth _firebaseAuth;
-  AssignmentList(this._firebaseAuth);
-  @override
-  Widget build(BuildContext context) {
-    String uid = _firebaseAuth.currentUser!.uid;
-    CollectionReference users = FirebaseFirestore.instance.collection('users');
-    Query filteredQuery = users.where('uid', isEqualTo:uid).limit(1);
-    return FutureBuilder<QuerySnapshot>(
-      future: filteredQuery.get(),
-      builder:
-        (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Text("Something went wrong");
-        }
-        if (snapshot.hasData && snapshot.data!.docs.length == 0) {
-          return Text("No Documents found for current uid");
-        }
-        if (snapshot.connectionState == ConnectionState.done) {
-          List<QueryDocumentSnapshot> docs = snapshot.data!.docs;
-          QueryDocumentSnapshot doc = docs[0];
-          Stream<QuerySnapshot> assignmentStream = FirebaseFirestore.instance.collection('users').doc(doc.id).collection('assignments').snapshots();
-         return Column(
-             children:[
-               Text(doc.id + ", username: " + doc.get('username') + ", level: " + doc.get('level')),
-                Text("Assignment list:"),
-                StreamBuilder<QuerySnapshot>(
-                  stream: assignmentStream,
-                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Something went wrong');
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Text("Loading");
-                    }
-                    return SizedBox(
-                      height:200.0,
-                      child:ListView(
-                        itemExtent: 80,
-                        children: snapshot.data!.docs.map((DocumentSnapshot document) => buildListItem(context, document)).toList(),
-                      ),
-                    );
-                  }
-                ),
-             ]
-         );
-
-        }
-          return Text("Loading...");
-      },
-    );
-  }
-
-  Widget buildListItem(BuildContext context, DocumentSnapshot document) {
-    Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-    return ListTile(
-        title: Text(data['name']),
-        subtitle: Text(data['due date']),
-    );
-  }
-}
- */
