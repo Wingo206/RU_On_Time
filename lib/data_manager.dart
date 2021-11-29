@@ -1,17 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ru_on_time/page/assignments.dart';
 
 class DataManager {
   QueryDocumentSnapshot userData;
   CollectionReference get assignmentCollection => FirebaseFirestore.instance.collection('users').doc(userData.id).collection('assignments');
-  Stream<QuerySnapshot> get assignmentStream => assignmentCollection.snapshots();
-  /*Stream<QuerySnapshot<Assignment>> get assignmentStreamConv => FirebaseFirestore.instance.collection('users').doc(userData.id).collection('assignments')
-      .withConverter<Assignment>(
-        fromFirestore: (snapshot, _) => Assignment.fromJson(snapshot.data()!),
-        toFirestore: (assignment, _) => assignment.toJson(),
-      ).snapshots();*/
-
+  Stream<QuerySnapshot> get assignmentStream => assignmentCollection.orderBy('due date', descending: false).snapshots();
 
   DataManager(this.userData);
 
