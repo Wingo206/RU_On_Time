@@ -29,7 +29,7 @@ class _AssignmentsPageState extends State<AssignmentsPage> {
             });
           },
           child: Text((_showForm) ? "Cancel" : "New Assignment"),
-          style: ElevatedButton.styleFrom(primary: (_showForm) ?Theme.of(context).disabledColor : Theme.of(context).primaryColor),
+          style: ElevatedButton.styleFrom(primary: (_showForm) ? Theme.of(context).disabledColor : Theme.of(context).primaryColor),
         ),
       ),
     ];
@@ -52,10 +52,7 @@ class _AssignmentsPageState extends State<AssignmentsPage> {
             onPressed: () {
               setState(() {
                 _showForm = false;
-                context
-                    .read<DataManager>()
-                    .assignmentCollection
-                    .add(_currentForm.currentState!.getAssignment().toJson());
+                context.read<DataManager>().assignmentCollection.add(_currentForm.currentState!.getAssignment().toJson());
                 _currentForm = AssignmentForm();
               });
             },
@@ -111,9 +108,7 @@ class _AssignmentFormState extends State<AssignmentForm> {
       padding: EdgeInsets.all(10),
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: Theme
-              .of(context)
-              .dividerColor),
+          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
         ),
         child: Padding(
           padding: EdgeInsets.all(5),
@@ -209,12 +204,11 @@ class AssignmentList extends StatelessWidget {
       padding: EdgeInsets.all(10),
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: Theme
-              .of(context)
-              .dividerColor),
+          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
         ),
         child: ListView(
-            children: _assignments.map((e) => AssignmentWidget(e)).toList(),
+          physics: BouncingScrollPhysics(),
+          children: _assignments.map((e) => AssignmentWidget(e)).toList(),
         ),
       ),
     );
@@ -234,11 +228,7 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
   bool _editing = false;
 
   Future<void> updateData(Map<String, dynamic> data) async {
-    await context
-        .read<DataManager>()
-        .assignmentCollection
-        .doc(widget._assignment.documentID)
-        .update(data);
+    await context.read<DataManager>().assignmentCollection.doc(widget._assignment.documentID).update(data);
   }
 
   @override
@@ -254,25 +244,17 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
             children: [
               IconButton(
                 icon: Icon(Icons.remove),
-                color: Theme
-                    .of(context)
-                    .primaryColor,
+                color: Theme.of(context).primaryColor,
                 onPressed: () {
                   setState(() {
                     //TODO confirmation?
-                    context
-                        .read<DataManager>()
-                        .assignmentCollection
-                        .doc(widget._assignment.documentID)
-                        .delete();
+                    context.read<DataManager>().assignmentCollection.doc(widget._assignment.documentID).delete();
                   });
                 },
               ),
               IconButton(
                 icon: Icon(Icons.edit),
-                color: Theme
-                    .of(context)
-                    .primaryColor,
+                color: Theme.of(context).primaryColor,
                 onPressed: () {
                   setState(() {
                     _editing = true;
@@ -281,9 +263,7 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
               ),
               IconButton(
                 icon: Icon(Icons.check),
-                color: Theme
-                    .of(context)
-                    .primaryColor,
+                color: Theme.of(context).primaryColor,
                 onPressed: () {
                   print("add completion code here");
                 },
@@ -303,23 +283,14 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
         //TODO JANKY
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(DateTime
-              .now()
-              .difference(widget._assignment.startDate)
-              .inDays
-              .toString() + " Days ago"),
-          Text("In " + widget._assignment.dueDate
-              .difference(DateTime.now())
-              .inDays
-              .toString() + " Days"),
+          Text(DateTime.now().difference(widget._assignment.startDate).inDays.toString() + " Days ago"),
+          Text("In " + widget._assignment.dueDate.difference(DateTime.now()).inDays.toString() + " Days"),
         ],
       ),
       Padding(
         padding: EdgeInsets.only(top: 5.0),
         child: LinearProgressIndicator(
-          value: (DateTime
-              .now()
-              .microsecondsSinceEpoch - widget._assignment.startDate.microsecondsSinceEpoch) /
+          value: (DateTime.now().microsecondsSinceEpoch - widget._assignment.startDate.microsecondsSinceEpoch) /
               (widget._assignment.dueDate.microsecondsSinceEpoch - widget._assignment.startDate.microsecondsSinceEpoch),
         ),
       ),
@@ -351,7 +322,6 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
                 });
               },
             ),
-
           ],
         ),
       );
@@ -361,9 +331,7 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
       padding: EdgeInsets.all(5.0),
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: Theme
-              .of(context)
-              .dividerColor),
+          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
           borderRadius: BorderRadius.all(Radius.circular(10)),
         ),
         child: Padding(
@@ -387,11 +355,11 @@ class Assignment {
 
   Assignment.fromJson(Map<String, Object?> json, String id)
       : this(
-    name: json['name']! as String,
-    dueDate: DateTime.parse(json['due date']! as String),
-    startDate: DateTime.parse(json['start date']! as String),
-    documentID: id,
-  );
+          name: json['name']! as String,
+          dueDate: DateTime.parse(json['due date']! as String),
+          startDate: DateTime.parse(json['start date']! as String),
+          documentID: id,
+        );
 
   Map<String, Object?> toJson() {
     return {

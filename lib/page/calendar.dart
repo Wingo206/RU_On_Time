@@ -95,7 +95,7 @@ class _CalendarState extends State<Calendar> {
               ),
             ),
           ),
-          Text(DateFormat('MMM d, y').format(_selectedDay)),
+          Text("Assignments for " + DateFormat('MMM d, y').format(_selectedDay)),
         ];
 
         if (snapshot.hasError) {
@@ -110,7 +110,6 @@ class _CalendarState extends State<Calendar> {
         _assignments = snapshot.data!.docs.map((DocumentSnapshot document) => Assignment.fromJson(document.data()! as Map<String, dynamic>, document.id)).toList();
 
         List<Assignment> toShow = getAssignmentsOnDay(_selectedDay, _assignments??[]);
-        print(MediaQuery.of(context).size.width.toString() + ", " + MediaQuery.of(context).size.height.toString());
         if (toShow.length > 0) {
           widgetsList.add(SizedBox(
             width: MediaQuery.of(context).size.width,

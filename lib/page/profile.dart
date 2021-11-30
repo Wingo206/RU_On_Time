@@ -17,20 +17,27 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final profile = UserPreferences.myProfile;
     return Scaffold(
-        appBar: buildAppBar(context),
-        body: ListView(
-          physics: BouncingScrollPhysics(),
-          children: [
-            ProfileWidget(
-              userImagePath: profile.userImagePath,
-              onClicked: () async {},
-            ),
-            const SizedBox(height: 24),
-            buildName(profile),
-            NumbersWidget(),
-            MoreNumbersWidget(),
-          ],
-        ));
+      appBar: buildAppBar(context),
+      body: ListView(
+        physics: BouncingScrollPhysics(),
+        children: [
+          ProfileWidget(
+            userImagePath: profile.userImagePath,
+            onClicked: () async {},
+          ),
+          const SizedBox(height: 24),
+          buildName(profile),
+          NumbersWidget(),
+          MoreNumbersWidget(),
+          ElevatedButton(
+            onPressed: () {
+              context.read<AuthenticationService>().signOut();
+            },
+            child: Text("JANKY SIGN OUT BUTTON"),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget buildName(Profile profile) => Column(
@@ -64,8 +71,7 @@ class Profile {
 
 class UserPreferences {
   static const myProfile = Profile(
-    userImagePath:
-        'https://images.squarespace-cdn.com/content/v1/551c36e1e4b072084065ac42/1551130460935-CKV711P68O4F5XCJ0161/IMG_34391.jpg',
+    userImagePath: 'https://images.squarespace-cdn.com/content/v1/551c36e1e4b072084065ac42/1551130460935-CKV711P68O4F5XCJ0161/IMG_34391.jpg',
     name: 'Hazem Zaky',
     email: 'hgz5@scarletmail.rutgers.edu',
     petImagePath: '',
@@ -111,58 +117,58 @@ class ProfileWidget extends StatelessWidget {
 
 class NumbersWidget extends StatelessWidget {
   @override
-  Widget build(BuildContext context) =>
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-        buildButton(context, '10', 'Level'),
-        buildDivider(),
-        buildButton(context, '25', 'Coins'),
-        buildDivider(),
-        buildButton(context, '3', 'Gems'),
-      ]);
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          buildButton(context, '10', 'Level'),
+          buildDivider(),
+          buildButton(context, '25', 'Coins'),
+          buildDivider(),
+          buildButton(context, '3', 'Gems'),
+        ],
+      );
 
   Widget buildDivider() => VerticalDivider();
 
-  Widget buildButton(BuildContext context, String value, String text) =>
-      MaterialButton(
-          padding: EdgeInsets.all(20.0),
-          onPressed: () {},
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Text(value,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
-              SizedBox(height: 2),
-              Text(text,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
-            ],
-          ));
+  Widget buildButton(BuildContext context, String value, String text) => MaterialButton(
+        padding: EdgeInsets.all(20.0),
+        onPressed: () {},
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            SizedBox(height: 2),
+            Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+          ],
+        ),
+      );
 }
 
 class MoreNumbersWidget extends StatelessWidget {
   @override
-  Widget build(BuildContext context) =>
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-        buildButton(context, '5', 'Completed'),
-        buildDivider(),
-        buildButton(context, '1', 'Due'),
-      ]);
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          buildButton(context, '5', 'Completed'),
+          buildDivider(),
+          buildButton(context, '1', 'To Do'),
+        ],
+      );
 
   Widget buildDivider() => VerticalDivider();
 
-  Widget buildButton(BuildContext context, String value, String text) =>
-      MaterialButton(
-          padding: EdgeInsets.all(20.0),
-          onPressed: () {},
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Text(value,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
-              SizedBox(height: 2),
-              Text(text,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
-            ],
-          ));
+  Widget buildButton(BuildContext context, String value, String text) => MaterialButton(
+        padding: EdgeInsets.all(20.0),
+        onPressed: () {},
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            SizedBox(height: 2),
+            Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+          ],
+        ),
+      );
 }
