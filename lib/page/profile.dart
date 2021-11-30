@@ -71,8 +71,7 @@ class Profile {
 
 class UserPreferences {
   static const myProfile = Profile(
-    userImagePath:
-        'https://images.squarespace-cdn.com/content/v1/551c36e1e4b072084065ac42/1551130460935-CKV711P68O4F5XCJ0161/IMG_34391.jpg',
+    userImagePath: 'https://images.squarespace-cdn.com/content/v1/551c36e1e4b072084065ac42/1551130460935-CKV711P68O4F5XCJ0161/IMG_34391.jpg',
     name: 'Hazem Zaky',
     email: 'hgz5@scarletmail.rutgers.edu',
     petImagePath: '',
@@ -129,19 +128,16 @@ class NumbersWidget extends StatelessWidget {
 
   Widget buildDivider() => VerticalDivider();
 
-  Widget buildButton(BuildContext context, String value, String text) =>
-      MaterialButton(
+  Widget buildButton(BuildContext context, String value, String text) => MaterialButton(
         padding: EdgeInsets.all(20.0),
         onPressed: () {},
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Text(value,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
             SizedBox(height: 2),
-            Text(text,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
           ],
         ),
       );
@@ -160,19 +156,16 @@ class MoreNumbersWidget extends StatelessWidget {
 
   Widget buildDivider() => VerticalDivider();
 
-  Widget buildButton(BuildContext context, String value, String text) =>
-      MaterialButton(
+  Widget buildButton(BuildContext context, String value, String text) => MaterialButton(
         padding: EdgeInsets.all(20.0),
         onPressed: () {},
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Text(value,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
             SizedBox(height: 2),
-            Text(text,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
           ],
         ),
       );
