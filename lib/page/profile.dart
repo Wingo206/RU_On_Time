@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
-import 'package:ru_on_time/widget/appbar_widget.dart';
+import 'package:ru_on_time/page/pets.dart';
 
 import '../authentication_service.dart';
 import '../data_manager.dart';
@@ -17,17 +17,17 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final profile = UserPreferences.myProfile;
     return Scaffold(
-      appBar: buildAppBar(context),
       body: ListView(
         physics: BouncingScrollPhysics(),
         children: [
+          NumbersWidget(),
           ProfileWidget(
             userImagePath: profile.userImagePath,
             onClicked: () async {},
           ),
           const SizedBox(height: 24),
           buildName(profile),
-          NumbersWidget(),
+          buildStatBar("Level", 20, 100),
           MoreNumbersWidget(),
           ElevatedButton(
             onPressed: () {
@@ -71,7 +71,8 @@ class Profile {
 
 class UserPreferences {
   static const myProfile = Profile(
-    userImagePath: 'https://images.squarespace-cdn.com/content/v1/551c36e1e4b072084065ac42/1551130460935-CKV711P68O4F5XCJ0161/IMG_34391.jpg',
+    userImagePath:
+        'https://images.squarespace-cdn.com/content/v1/551c36e1e4b072084065ac42/1551130460935-CKV711P68O4F5XCJ0161/IMG_34391.jpg',
     name: 'Hazem Zaky',
     email: 'hgz5@scarletmail.rutgers.edu',
     petImagePath: '',
@@ -117,29 +118,30 @@ class ProfileWidget extends StatelessWidget {
 
 class NumbersWidget extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          buildButton(context, '10', 'Level'),
-          buildDivider(),
-          buildButton(context, '25', 'Coins'),
-          buildDivider(),
-          buildButton(context, '3', 'Gems'),
-        ],
-      );
+  Widget build(BuildContext context) {
+    return Center(
+        child: Padding(
+            padding: EdgeInsets.all(10.0),
+            child: Column(children: [
+              CurrencyDisplay(),
+            ])));
+  }
 
   Widget buildDivider() => VerticalDivider();
 
-  Widget buildButton(BuildContext context, String value, String text) => MaterialButton(
+  Widget buildButton(BuildContext context, String value, String text) =>
+      MaterialButton(
         padding: EdgeInsets.all(20.0),
         onPressed: () {},
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            Text(value,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
             SizedBox(height: 2),
-            Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            Text(text,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
           ],
         ),
       );
@@ -158,17 +160,39 @@ class MoreNumbersWidget extends StatelessWidget {
 
   Widget buildDivider() => VerticalDivider();
 
-  Widget buildButton(BuildContext context, String value, String text) => MaterialButton(
+  Widget buildButton(BuildContext context, String value, String text) =>
+      MaterialButton(
         padding: EdgeInsets.all(20.0),
         onPressed: () {},
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            Text(value,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
             SizedBox(height: 2),
-            Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
+            Text(text,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
           ],
         ),
       );
+}
+
+Widget buildStatBar(String name, double value, double maxValue) {
+  return Padding(
+    padding: EdgeInsets.all(10.0),
+    child: Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(name),
+            Text(value.toString() + " / " + maxValue.toString()),
+          ],
+        ),
+        SizedBox(height: 5.0),
+        LinearProgressIndicator(minHeight: 30, value: value / maxValue),
+      ],
+    ),
+  );
 }
