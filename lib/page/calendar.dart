@@ -17,7 +17,6 @@ class CalendarPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            //Text('Calendar', style: TextStyle(fontSize: 60)),
             Calendar(),
           ],
         ),
@@ -93,7 +92,7 @@ class _CalendarState extends State<Calendar> {
               ),
             ),
           ),
-          //Text("Assignments for " + DateFormat('MMM d, y').format(_selectedDay)),
+          Text("Assignments for " + DateFormat('MMM d, y').format(_selectedDay)),
         ];
 
         if (snapshot.hasError) {
@@ -110,7 +109,7 @@ class _CalendarState extends State<Calendar> {
         List<Assignment> toShow = getAssignmentsOnDay(_selectedDay, _assignments ?? []);
         if (toShow.length > 0) {
           widgetsList.add(SizedBox(
-            height: MediaQuery.of(context).size.height - MediaQuery.of(context).size.width * scaleFactor - 230,
+            height: MediaQuery.of(context).size.height - MediaQuery.of(context).size.width * scaleFactor - 240,
             child: AssignmentList(toShow),
           ));
         }

@@ -1,9 +1,12 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui show Image;
 
 import 'package:flutter/services.dart';
+import 'package:ru_on_time/data_manager.dart';
+import 'package:provider/src/provider.dart';
 
 class PetsPage extends StatelessWidget {
   @override
@@ -24,10 +27,10 @@ class PetsPage extends StatelessWidget {
                 child: ListView(
                   physics: BouncingScrollPhysics(),
                   children: [
-                    PetWidget(Pet(type: "cat", name: "Binky", love: 30, food: 20, cleanliness: 60, lastUpdate: DateTime.now())),
-                    PetWidget(Pet(type: "dog", name: "Buster", love: 40, food: 30, cleanliness: 90, lastUpdate: DateTime.now())),
-                    PetWidget(Pet(type: "dragon", name: "Broga", love: 70, food: 40, cleanliness: 80, lastUpdate: DateTime.now())),
-                    PetWidget(Pet(type: "penguin", name: "Yoiticus", love: 80, food: 10, cleanliness: 50, lastUpdate: DateTime.now())),
+                    PetWidget(Pet(type: "cat", name: "Binky", love: 30, food: 20, cleanliness: 60, startDate: DateTime.now(), lastUpdate: DateTime.now())),
+                    PetWidget(Pet(type: "dog", name: "Buster", love: 40, food: 30, cleanliness: 90, startDate: DateTime.now(), lastUpdate: DateTime.now())),
+                    PetWidget(Pet(type: "dragon", name: "Broga", love: 70, food: 40, cleanliness: 80, startDate: DateTime.now(), lastUpdate: DateTime.now())),
+                    PetWidget(Pet(type: "penguin", name: "Yoiticus", love: 80, food: 10, cleanliness: 50, startDate: DateTime.now(), lastUpdate: DateTime.now())),
                     SizedBox(height: 10.0),
                   ],
                 ),
@@ -46,8 +49,32 @@ class CurrencyDisplay extends StatefulWidget {
 }
 
 class _CurrencyDisplayState extends State<CurrencyDisplay> {
+  int coins = 0;
+  int gems = 0;
+
   @override
   Widget build(BuildContext context) {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(context.read<DataManager>().uid).snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Text('Something went wrong');
+        }
+        if (snapshot.hasData && !snapshot.data!.exists) {
+          return Text("Document does not exist");
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return buildDisplay(context);
+        }
+        Map<String, dynamic> data = snapshot.data!.data()! as Map<String, dynamic>;
+        coins = data['coins'] as int;
+        gems = data['gems'] as int;
+        return buildDisplay(context);
+      },
+    );
+  }
+
+  Widget buildDisplay(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
@@ -61,13 +88,13 @@ class _CurrencyDisplayState extends State<CurrencyDisplay> {
             Column(
               children: [
                 Icon(Icons.attach_money, size: 30.0),
-                Text("Coins: 10"),
+                Text("Coins: " + coins.toString()),
               ],
             ),
             Column(
               children: [
                 Icon(Icons.sports_soccer_rounded, size: 30.0),
-                Text("Gems: 10"),
+                Text("Gems: " + gems.toString()),
               ],
             ),
           ],
@@ -179,7 +206,7 @@ class _PetWidgetState extends State<PetWidget> {
               Text(value.toString() + " / " + maxValue.toString()),
             ],
           ),
-          SizedBox(height:5.0),
+          SizedBox(height: 5.0),
           LinearProgressIndicator(value: value / maxValue),
         ],
       ),
@@ -309,10 +336,11 @@ class Pet {
   double love;
   double food;
   double cleanliness;
+  DateTime startDate;
   DateTime lastUpdate;
   String? documentID;
 
-  Pet({required this.type, required this.name, required this.love, required this.food, required this.cleanliness, required this.lastUpdate, this.documentID});
+  Pet({required this.type, required this.name, required this.love, required this.food, required this.cleanliness, required this.startDate, required this.lastUpdate, this.documentID});
 
   Pet.fromJson(Map<String, Object?> json, String id)
       : this(
@@ -321,6 +349,7 @@ class Pet {
           love: json['love']! as double,
           food: json['food']! as double,
           cleanliness: json['cleanliness']! as double,
+          startDate: DateTime.parse(json['start date']! as String),
           lastUpdate: DateTime.parse(json['last update']! as String),
           documentID: id,
         );
@@ -332,6 +361,7 @@ class Pet {
       'love': love,
       'food': food,
       'cleanliness': cleanliness,
+      'start date': startDate.toIso8601String(),
       'last update': lastUpdate.toIso8601String(),
     };
   }
