@@ -13,11 +13,14 @@ class CalendarPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        children: [
-          //Text('Calendar', style: TextStyle(fontSize: 60)),
-          Calendar(),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            //Text('Calendar', style: TextStyle(fontSize: 60)),
+            Calendar(),
+          ],
+        ),
       ),
     );
   }
@@ -37,7 +40,6 @@ extension DateOnlyCompare on DateTime {
 class _CalendarState extends State<Calendar> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-  CalendarFormat _calendarFormat = CalendarFormat.month;
   List<Assignment>? _assignments;
 
   List<Assignment> getAssignmentsOnDay(DateTime day, List<Assignment> assignments) {
@@ -55,11 +57,10 @@ class _CalendarState extends State<Calendar> {
     return StreamBuilder<QuerySnapshot>(
       stream: context.read<DataManager>().assignmentStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-
         List<Widget> widgetsList = [
           SizedBox(
             width: MediaQuery.of(context).size.width * scaleFactor,
-            height: MediaQuery.of(context).size.width * scaleFactor,
+            height: MediaQuery.of(context).size.width * scaleFactor * 1.1,
             child: Padding(
               padding: EdgeInsets.only(left: 10.0, right: 10.0),
               child: TableCalendar(
@@ -73,15 +74,12 @@ class _CalendarState extends State<Calendar> {
                 onDaySelected: (selectedDay, focusedDay) {
                   setState(() {
                     _selectedDay = selectedDay;
-                    _focusedDay = focusedDay; // update `_focusedDay` here as well
+                    _focusedDay = focusedDay;
                   });
                 },
-                calendarFormat: _calendarFormat,
-                onFormatChanged: (format) {
-                  setState(() {
-                    _calendarFormat = format;
-                  });
-                },
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: false,
+                ),
                 onPageChanged: (focusedDay) {
                   _focusedDay = focusedDay;
                 },
@@ -95,7 +93,7 @@ class _CalendarState extends State<Calendar> {
               ),
             ),
           ),
-          Text("Assignments for " + DateFormat('MMM d, y').format(_selectedDay)),
+          //Text("Assignments for " + DateFormat('MMM d, y').format(_selectedDay)),
         ];
 
         if (snapshot.hasError) {
@@ -109,16 +107,16 @@ class _CalendarState extends State<Calendar> {
 
         _assignments = snapshot.data!.docs.map((DocumentSnapshot document) => Assignment.fromJson(document.data()! as Map<String, dynamic>, document.id)).toList();
 
-        List<Assignment> toShow = getAssignmentsOnDay(_selectedDay, _assignments??[]);
+        List<Assignment> toShow = getAssignmentsOnDay(_selectedDay, _assignments ?? []);
         if (toShow.length > 0) {
           widgetsList.add(SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height - MediaQuery.of(context).size.width * scaleFactor - 215,
+            height: MediaQuery.of(context).size.height - MediaQuery.of(context).size.width * scaleFactor - 230,
             child: AssignmentList(toShow),
           ));
         }
 
         return Column(
+          mainAxisSize: MainAxisSize.min,
           children: widgetsList,
         );
       },

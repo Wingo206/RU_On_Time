@@ -20,6 +20,10 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
 
+  MyApp() {
+    PetData.loadPetData();
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -29,8 +33,7 @@ class MyApp extends StatelessWidget {
           create: (_) => AuthenticationService(FirebaseAuth.instance),
         ),
         StreamProvider(
-          create: (context) =>
-              context.read<AuthenticationService>().authStateChanges,
+          create: (context) => context.read<AuthenticationService>().authStateChanges,
           initialData: null,
         ),
       ],
@@ -43,8 +46,7 @@ class MyApp extends StatelessWidget {
           future: _fbApp,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              print(
-                  'Failed to initialize Firebase ${snapshot.error.toString()}');
+              print('Failed to initialize Firebase ${snapshot.error.toString()}');
               return Text('Something went wrong!');
             } else if (snapshot.hasData) {
               return AuthenticationWrapper();
@@ -65,13 +67,11 @@ class AuthenticationWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
     if (firebaseUser != null) {
-      Future<DataManager> _dataManager = DataManager.create(
-          FirebaseAuth.instance);
+      Future<DataManager> _dataManager = DataManager.create(FirebaseAuth.instance);
 
       return FutureBuilder<DataManager>(
         future: _dataManager,
-        builder:
-            (BuildContext context, AsyncSnapshot<DataManager> snapshot) {
+        builder: (BuildContext context, AsyncSnapshot<DataManager> snapshot) {
           if (snapshot.hasError) {
             return Text("Something went wrong");
           }
@@ -84,8 +84,8 @@ class AuthenticationWrapper extends StatelessWidget {
               so anything within the context of the provider (The home page) can
               access the Data Manager by doing context.read<DataManager>(), like
               in the AssignmentsPage's build method.*/
-                create: (_) => snapshot.data!,
-                child: MyHomePage(title: 'RU On Time Home Page'),
+              create: (_) => snapshot.data!,
+              child: MyHomePage(),
             );
           }
           return Text("Loading...");
@@ -98,8 +98,7 @@ class AuthenticationWrapper extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -117,13 +116,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text("RU On Time"),
       ),
-      body: Center(
+      body: SafeArea(
+        child: Center(
           child: screens[currentIndex],
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,

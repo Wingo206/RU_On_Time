@@ -1,16 +1,338 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui show Image;
 
+import 'package:flutter/services.dart';
 
-class PetsPage extends StatelessWidget{
-
+class PetsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
+      child: Padding(
+        padding: EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            CurrencyDisplay(),
+            SizedBox(height: 10.0),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                child: ListView(
+                  physics: BouncingScrollPhysics(),
+                  children: [
+                    PetWidget(Pet(type: "cat", name: "Binky", love: 30, food: 20, cleanliness: 60, lastUpdate: DateTime.now())),
+                    PetWidget(Pet(type: "dog", name: "Buster", love: 40, food: 30, cleanliness: 90, lastUpdate: DateTime.now())),
+                    PetWidget(Pet(type: "dragon", name: "Broga", love: 70, food: 40, cleanliness: 80, lastUpdate: DateTime.now())),
+                    PetWidget(Pet(type: "penguin", name: "Yoiticus", love: 80, food: 10, cleanliness: 50, lastUpdate: DateTime.now())),
+                    SizedBox(height: 10.0),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CurrencyDisplay extends StatefulWidget {
+  @override
+  _CurrencyDisplayState createState() => _CurrencyDisplayState();
+}
+
+class _CurrencyDisplayState extends State<CurrencyDisplay> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(10.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Column(
+              children: [
+                Icon(Icons.attach_money, size: 30.0),
+                Text("Coins: 10"),
+              ],
+            ),
+            Column(
+              children: [
+                Icon(Icons.sports_soccer_rounded, size: 30.0),
+                Text("Gems: 10"),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PetWidget extends StatefulWidget {
+  Pet pet;
+
+  PetWidget(this.pet);
+
+  @override
+  _PetWidgetState createState() => _PetWidgetState();
+}
+
+class _PetWidgetState extends State<PetWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(width: 48.0),
+                  Expanded(
+                    child: Text(
+                      widget.pet.name,
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    color: Theme.of(context).primaryColor,
+                    onPressed: () {
+                      setState(() {
+                        print("name editing code"); //TODO
+                      });
+                    },
+                  ),
+                ],
+              ),
+              PetDisplay(
+                size: Size(250, 250),
+                pet: widget.pet,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        print("petting code"); //TODO
+                      });
+                    },
+                    child: Text("Pet (\$1)"),
+                  ),
+                  SizedBox(width: 5.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        print("feeding code"); //TODO
+                      });
+                    },
+                    child: Text("Feed (\$2)"),
+                  ),
+                  SizedBox(width: 5.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        print("cleaning code"); //TODO
+                      });
+                    },
+                    child: Text("Clean (\$3)"),
+                  ),
+                ],
+              ),
+              buildStatBar("Love", widget.pet.love, 100),
+              buildStatBar("Food", widget.pet.food, 100),
+              buildStatBar("Cleanliness", widget.pet.cleanliness, 100),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildStatBar(String name, double value, double maxValue) {
+    return Padding(
+      padding: EdgeInsets.all(5.0),
       child: Column(
         children: [
-          Text('Pets', style: TextStyle(fontSize: 60))
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(name),
+              Text(value.toString() + " / " + maxValue.toString()),
+            ],
+          ),
+          SizedBox(height:5.0),
+          LinearProgressIndicator(value: value / maxValue),
         ],
       ),
     );
+  }
+}
+
+class PetDisplay extends StatefulWidget {
+  final Size size;
+  final Pet pet;
+
+  PetDisplay({required this.size, required this.pet});
+
+  @override
+  _PetDisplayState createState() => _PetDisplayState();
+}
+
+class _PetDisplayState extends State<PetDisplay> with SingleTickerProviderStateMixin {
+  late Animation<double> animation;
+  late AnimationController controller;
+  Tween<double> _tween = Tween(begin: -pi, end: pi);
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 4),
+    );
+
+    animation = _tween.animate(controller)
+      ..addListener(() {
+        setState(() {});
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          controller.repeat();
+        } else if (status == AnimationStatus.dismissed) {
+          controller.forward();
+        }
+      });
+    controller.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: widget.size,
+      painter: _PetPainter(animation.value, widget.pet),
+    );
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+}
+
+class _PetPainter extends CustomPainter {
+  final double value;
+  final Pet pet;
+
+  _PetPainter(this.value, this.pet);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+        Rect.fromPoints(Offset.zero, Offset(size.width, size.height)),
+        Paint()
+          ..color = Colors.blue
+          ..style = PaintingStyle.fill);
+    //rotate(canvas, convert(Offset(150, 150), size), pi/4);
+    double v = 5 * cos(value);
+    canvas.drawImageRect(PetData.petDataMap[pet.type]!._image, Rect.fromPoints(Offset(0, v), Offset(512, 512)), Rect.fromPoints(Offset.zero, Offset(size.width, size.height)), Paint());
+    //rotate(canvas, convert(Offset(150, 150), size), -pi/4);
+  }
+
+  Offset convert(Offset input, Size size) {
+    return Offset(input.dx * size.width / 512.0, input.dy * size.height / 512.0);
+  }
+
+  void rotate(Canvas canvas, Offset c, double angle) {
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(angle);
+    canvas.translate(-c.dx, -c.dy);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter old) {
+    return true;
+  }
+}
+
+Future<ui.Image> loadImage(String path) async {
+  final data = await rootBundle.load(path);
+  final bytes = data.buffer.asUint8List();
+  final image = await decodeImageFromList(bytes);
+  return image;
+}
+
+class PetData {
+  static final Map<String, PetData> petDataMap = new Map<String, PetData>();
+
+  final String _name;
+  late ui.Image _image;
+
+  PetData(this._name) {
+    loadImage('assets/' + _name + '.png').then((image) {
+      _image = image;
+      petDataMap[_name] = this;
+    });
+  }
+
+  static loadPetData() {
+    PetData("cat");
+    PetData("dog");
+    PetData("dragon");
+    PetData("penguin");
+  }
+}
+
+class Pet {
+  String type;
+  String name;
+  double love;
+  double food;
+  double cleanliness;
+  DateTime lastUpdate;
+  String? documentID;
+
+  Pet({required this.type, required this.name, required this.love, required this.food, required this.cleanliness, required this.lastUpdate, this.documentID});
+
+  Pet.fromJson(Map<String, Object?> json, String id)
+      : this(
+          type: json['type']! as String,
+          name: json['name']! as String,
+          love: json['love']! as double,
+          food: json['food']! as double,
+          cleanliness: json['cleanliness']! as double,
+          lastUpdate: DateTime.parse(json['last update']! as String),
+          documentID: id,
+        );
+
+  Map<String, Object?> toJson() {
+    return {
+      'type': type,
+      'name': name,
+      'love': love,
+      'food': food,
+      'cleanliness': cleanliness,
+      'last update': lastUpdate.toIso8601String(),
+    };
   }
 }
