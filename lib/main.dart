@@ -33,7 +33,8 @@ class MyApp extends StatelessWidget {
           create: (_) => AuthenticationService(FirebaseAuth.instance),
         ),
         StreamProvider(
-          create: (context) => context.read<AuthenticationService>().authStateChanges,
+          create: (context) =>
+              context.read<AuthenticationService>().authStateChanges,
           initialData: null,
         ),
       ],
@@ -46,7 +47,8 @@ class MyApp extends StatelessWidget {
           future: _fbApp,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              print('Failed to initialize Firebase ${snapshot.error.toString()}');
+              print(
+                  'Failed to initialize Firebase ${snapshot.error.toString()}');
               return Text('Something went wrong!');
             } else if (snapshot.hasData) {
               return AuthenticationWrapper();
@@ -67,7 +69,8 @@ class AuthenticationWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
     if (firebaseUser != null) {
-      Future<DataManager> _dataManager = DataManager.create(FirebaseAuth.instance);
+      Future<DataManager> _dataManager =
+          DataManager.create(FirebaseAuth.instance);
 
       return FutureBuilder<DataManager>(
         future: _dataManager,
@@ -160,4 +163,23 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+}
+
+Widget buildStatBar(String name, double value, double maxValue) {
+  return Padding(
+    padding: EdgeInsets.all(5.0),
+    child: Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(name),
+            Text(value.toString() + " / " + maxValue.toString()),
+          ],
+        ),
+        SizedBox(height: 5.0),
+        LinearProgressIndicator(value: value / maxValue),
+      ],
+    ),
+  );
 }
