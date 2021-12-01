@@ -16,7 +16,7 @@ class ShopPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 context.read<DataManager>().petsCollection.add(
-                      Pet(type: "cat", name: "Binky", love: 30, food: 20, cleanliness: 60, startDate: DateTime.now(), lastUpdate: DateTime.now()).toJson(),
+                      Pet(type: "cat", name: "Binky", love: 30, food: 20, cleanliness: 60, startDate: DateTime.now(), lastUpdate: DateTime.now(), accessories:<Accessory>[]).toJson(),
                     );
               },
               child: Text("Debug Button Add Pet"),

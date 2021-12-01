@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
 
   MyApp() {
-    PetData.loadPetData();
+    ImageData.loadImageData();
   }
 
   // This widget is the root of your application.

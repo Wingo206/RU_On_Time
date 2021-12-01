@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui show Image;
 
@@ -9,13 +8,14 @@ import 'package:flutter/services.dart';
 import 'package:ru_on_time/data_manager.dart';
 import 'package:provider/src/provider.dart';
 
+/*
 List<Pet> testPets = [
   Pet(type: "cat", name: "Binky", love: 30, food: 20, cleanliness: 60, startDate: DateTime.now(), lastUpdate: DateTime.now()),
   Pet(type: "dog", name: "Buster", love: 40, food: 30, cleanliness: 90, startDate: DateTime.now(), lastUpdate: DateTime.now()),
   Pet(type: "dragon", name: "Broga", love: 70, food: 40, cleanliness: 80, startDate: DateTime.now(), lastUpdate: DateTime.now()),
   Pet(type: "penguin", name: "Yoiticus", love: 80, food: 10, cleanliness: 50, startDate: DateTime.now(), lastUpdate: DateTime.now()),
 ];
-
+*/
 int pettingCost = 1;
 double pettingAmount = 20.0;
 int feedingCost = 2;
@@ -26,6 +26,7 @@ double cleaningAmount = 20.0;
 class PetsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    DataManager dataManager = context.read<DataManager>();
     return Center(
       child: Padding(
         padding: EdgeInsets.all(10.0),
@@ -34,7 +35,7 @@ class PetsPage extends StatelessWidget {
             CurrencyDisplay(),
             SizedBox(height: 10.0),
             StreamBuilder<QuerySnapshot>(
-              stream: context.read<DataManager>().petStream,
+              stream: dataManager.petStream,
               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasError) {
                   return Text('Something went wrong');
@@ -42,13 +43,36 @@ class PetsPage extends StatelessWidget {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Text("Loading");
                 }
-                return PetList(snapshot.data!.docs.map((DocumentSnapshot document) => Pet.fromJson(document.data()! as Map<String, dynamic>, document.id)).toList());
+                return FutureBuilder<List<Pet>>(
+                  future: createPetList(dataManager, snapshot.data!),
+                  builder: (BuildContext context, AsyncSnapshot<List<Pet>> pets) {
+                    if (snapshot.hasError) {
+                      return Text('Something went wrong');
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Text("Loading");
+                    }
+                    return PetList(pets.data ?? []);
+                  },
+                );
+//                return PetList(snapshot.data!.docs.map((DocumentSnapshot document) => Pet.createFromJson(dataManager, document.data()! as Map<String, dynamic>, document.id)).toList());
               },
             )
           ],
         ),
       ),
     );
+  }
+
+  Future<List<Pet>> createPetList(DataManager dataManager, QuerySnapshot snapshot) async {
+    List<Pet> pets = [];
+    for (DocumentSnapshot document in snapshot.docs) {
+      await Pet.createFromJson(dataManager, document.data()! as Map<String, dynamic>, document.id).then((Pet p) {
+        print(p.name + " added");
+        pets.add(p);
+      });
+    }
+    return pets;
   }
 }
 
@@ -148,8 +172,23 @@ class PetWidget extends StatefulWidget {
 }
 
 class _PetWidgetState extends State<PetWidget> {
+  bool _editingName = false;
+
   @override
   Widget build(BuildContext context) {
+    TextEditingController nameController = TextEditingController(text: widget.pet.name);
+    //update info for pet
+    int hours = DateTime.now().difference(widget.pet.lastUpdate).inHours;
+    if (hours > 0) {
+      widget.pet.lastUpdate = DateTime.now();
+      widget.pet.love -= hours / 24.0 * 3.0;
+      widget.pet.love = max(0, widget.pet.love);
+      widget.pet.food -= hours / 24.0 * 10.0 * (1 - (widget.pet.love / 100.0));
+      widget.pet.food = max(0, widget.pet.food);
+      widget.pet.cleanliness -= hours / 24.0 * 5.0 * (1 - (widget.pet.love / 100.0));
+      widget.pet.cleanliness = max(0, widget.pet.cleanliness);
+      widget.pet.updateDocument(context);
+    }
     return Padding(
       padding: EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
       child: Container(
@@ -166,18 +205,34 @@ class _PetWidgetState extends State<PetWidget> {
                 children: [
                   SizedBox(width: 48.0),
                   Expanded(
-                    child: Text(
-                      widget.pet.name,
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
+                    child: (_editingName)
+                        ? Padding(
+                            padding: EdgeInsets.only(bottom: 5.0),
+                            child: TextField(
+                              controller: nameController,
+                              decoration: InputDecoration(
+                                labelText: "Pet Name",
+                              ),
+                            ),
+                          )
+                        : Text(
+                            widget.pet.name,
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.edit),
+                    icon: Icon((_editingName) ? Icons.check : Icons.edit),
                     color: Theme.of(context).primaryColor,
                     onPressed: () {
                       setState(() {
-                        print("name editing code"); //TODO
+                        if (_editingName) {
+                          if (widget.pet.name != nameController.text.trim()) {
+                            widget.pet.name = nameController.text.trim();
+                            widget.pet.updateDocument(context);
+                          }
+                        }
+                        _editingName = !_editingName;
                       });
                     },
                   ),
@@ -267,7 +322,7 @@ class _PetWidgetState extends State<PetWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(name),
-              Text(value.toString() + " / " + maxValue.toString()),
+              Text(value.toStringAsFixed(2) + " / " + maxValue.toStringAsFixed(0)),
             ],
           ),
           SizedBox(height: 5.0),
@@ -344,9 +399,12 @@ class _PetPainter extends CustomPainter {
         Paint()
           ..color = Colors.blue
           ..style = PaintingStyle.fill);
+    for (Accessory a in pet.accessories) {
+      print(a.type);
+    }
     //rotate(canvas, convert(Offset(150, 150), size), pi/4);
     double v = 5 * cos(value);
-    canvas.drawImageRect(PetData.petDataMap[pet.type]!._image, Rect.fromPoints(Offset(0, v), Offset(512, 512)), Rect.fromPoints(Offset.zero, Offset(size.width, size.height)), Paint());
+    canvas.drawImageRect(ImageData.petDataMap[pet.type]!._image, Rect.fromPoints(Offset(0, v), Offset(512, 512)), Rect.fromPoints(Offset.zero, Offset(size.width, size.height)), Paint());
     //rotate(canvas, convert(Offset(150, 150), size), -pi/4);
   }
 
@@ -373,24 +431,30 @@ Future<ui.Image> loadImage(String path) async {
   return image;
 }
 
-class PetData {
-  static final Map<String, PetData> petDataMap = new Map<String, PetData>();
+class ImageData {
+  static final Map<String, ImageData> petDataMap = new Map<String, ImageData>();
 
   final String _name;
   late ui.Image _image;
 
-  PetData(this._name) {
+  ImageData(this._name) {
     loadImage('assets/' + _name + '.png').then((image) {
       _image = image;
       petDataMap[_name] = this;
     });
   }
 
-  static loadPetData() {
-    PetData("cat");
-    PetData("dog");
-    PetData("dragon");
-    PetData("penguin");
+  static loadImageData() {
+    ImageData("cat");
+    ImageData("dog");
+    ImageData("dragon");
+    ImageData("penguin");
+    ImageData("bandana");
+    ImageData("bowtie");
+    ImageData("collar");
+    ImageData("flower_crown");
+    ImageData("santa_hat");
+    ImageData("top_hat");
   }
 }
 
@@ -402,21 +466,42 @@ class Pet {
   double cleanliness;
   DateTime startDate;
   DateTime lastUpdate;
-  String? documentID;
+  List<Accessory> accessories;
+  String? documentId;
 
-  Pet({required this.type, required this.name, required this.love, required this.food, required this.cleanliness, required this.startDate, required this.lastUpdate, this.documentID});
+  Pet({
+    required this.type,
+    required this.name,
+    required this.love,
+    required this.food,
+    required this.cleanliness,
+    required this.startDate,
+    required this.lastUpdate,
+    required this.accessories,
+    this.documentId,
+  });
 
-  Pet.fromJson(Map<String, Object?> json, String id)
-      : this(
-          type: json['type']! as String,
-          name: json['name']! as String,
-          love: (json['love']! as num).toDouble(),
-          food: (json['food']! as num).toDouble(),
-          cleanliness: (json['cleanliness']! as num).toDouble(),
-          startDate: DateTime.parse(json['start date']! as String),
-          lastUpdate: DateTime.parse(json['last update']! as String),
-          documentID: id,
-        );
+  static Future<Pet> createFromJson(DataManager manager, Map<String, Object?> json, String id) async {
+    List<String> ids = (json['accessories'] as List<dynamic>).map((dynamic d) => d as String).toList();
+    List<Accessory> accessories = [];
+    for (String id in ids) {
+      await manager.accessoriesCollection.doc(id).get().then((DocumentSnapshot document) {
+        print(document.exists);
+        accessories.add(Accessory.fromJson(document.data()! as Map<String, dynamic>, id));
+      });
+    }
+    return Pet(
+      type: json['type']! as String,
+      name: json['name']! as String,
+      love: (json['love']! as num).toDouble(),
+      food: (json['food']! as num).toDouble(),
+      cleanliness: (json['cleanliness']! as num).toDouble(),
+      startDate: DateTime.parse(json['start date']! as String),
+      lastUpdate: DateTime.parse(json['last update']! as String),
+      accessories: accessories,
+      documentId: id,
+    );
+  }
 
   Map<String, Object?> toJson() {
     return {
@@ -427,10 +512,39 @@ class Pet {
       'cleanliness': cleanliness,
       'start date': startDate.toIso8601String(),
       'last update': lastUpdate.toIso8601String(),
+      'accessories': accessories.map((Accessory a) => a.documentId).toList(),
     };
   }
 
   Future<void> updateDocument(BuildContext context) async {
-    context.read<DataManager>().petsCollection.doc(documentID).update(toJson());
+    context.read<DataManager>().petsCollection.doc(documentId).update(toJson());
+  }
+}
+
+class Accessory {
+  String type;
+  DateTime date;
+  bool inUse;
+  String? documentId;
+
+  Accessory({required this.type, required this.date, required this.inUse, this.documentId});
+
+  Accessory.fromJson(Map<String, Object?> json, String id)
+      : this(
+          type: json['type']! as String,
+          inUse: json['in use']! as bool,
+          date: DateTime.parse(json['date']! as String),
+        );
+
+  Map<String, Object?> toJson() {
+    return {
+      'type': type,
+      'in use': inUse,
+      'date': date.toIso8601String(),
+    };
+  }
+
+  Future<void> updateDocument(BuildContext context) async {
+    context.read<DataManager>().petsCollection.doc(documentId).update(toJson());
   }
 }

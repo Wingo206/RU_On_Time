@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -11,12 +13,13 @@ class DataManager {
   DocumentReference get userRef => usersCollection.doc(uid);
 
   CollectionReference get assignmentsCollection => usersCollection.doc(uid).collection('assignments');
-
   Stream<QuerySnapshot> get assignmentStream => assignmentsCollection.orderBy('due date', descending: false).snapshots();
 
   CollectionReference get petsCollection => usersCollection.doc(uid).collection('pets');
-
   Stream<QuerySnapshot> get petStream => petsCollection.orderBy('start date', descending: false).snapshots();
+
+  CollectionReference get accessoriesCollection => usersCollection.doc(uid).collection('accessories');
+  Stream<QuerySnapshot> get accessoriesStream => petsCollection.orderBy('date', descending: false).snapshots();
 
   DataManager(this.uid);
 
@@ -40,7 +43,6 @@ class DataManager {
         );
       }
     });
-
     return manager;
   }
 
