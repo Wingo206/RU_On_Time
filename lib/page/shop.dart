@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ru_on_time/data_manager.dart';
+import 'package:ru_on_time/page/pet_render.dart';
 import 'package:ru_on_time/page/pets.dart';
 import 'package:provider/src/provider.dart';
 

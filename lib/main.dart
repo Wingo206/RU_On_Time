@@ -9,6 +9,7 @@ import 'package:ru_on_time/page/pets.dart';
 import 'package:ru_on_time/page/profile.dart';
 import 'package:ru_on_time/page/shop.dart';
 import 'package:ru_on_time/sign_in.dart';
+import 'package:ru_on_time/page/pet_render.dart';
 
 import 'authentication_service.dart';
 import 'data_manager.dart';
