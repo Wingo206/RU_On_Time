@@ -24,3 +24,6 @@ doc/api/
 .idea/libraries/Flutter_Plugins.xml
 .flutter-plugins
 .flutter-plugins-dependencies
+.idea/libraries/Dart_Packages.xml
+.idea/libraries/Dart_SDK.xml
+.idea/libraries/Flutter_Plugins.xml
