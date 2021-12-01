@@ -21,6 +21,14 @@ class ShopPage extends StatelessWidget {
               },
               child: Text("Debug Button Add Pet"),
             ),
+            ElevatedButton(
+              onPressed: () {
+                context.read<DataManager>().accessoriesCollection.add(
+                  Accessory(type: "top_hat", date: DateTime.now(), inUse: false, xPos: 0, yPos: 0, angle: 0, size: 1,).toJson()
+                );
+              },
+              child: Text("Debug Button Add accessory"),
+            ),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -68,10 +69,10 @@ class PetsPage extends StatelessWidget {
     List<Pet> pets = [];
     for (DocumentSnapshot document in snapshot.docs) {
       await Pet.createFromJson(dataManager, document.data()! as Map<String, dynamic>, document.id).then((Pet p) {
-        print(p.name + " added");
         pets.add(p);
       });
     }
+
     return pets;
   }
 }
@@ -399,17 +400,43 @@ class _PetPainter extends CustomPainter {
         Paint()
           ..color = Colors.blue
           ..style = PaintingStyle.fill);
-    for (Accessory a in pet.accessories) {
-      print(a.type);
-    }
-    //rotate(canvas, convert(Offset(150, 150), size), pi/4);
+
     double v = 5 * cos(value);
-    canvas.drawImageRect(ImageData.petDataMap[pet.type]!._image, Rect.fromPoints(Offset(0, v), Offset(512, 512)), Rect.fromPoints(Offset.zero, Offset(size.width, size.height)), Paint());
-    //rotate(canvas, convert(Offset(150, 150), size), -pi/4);
+    /*canvas.drawImageRect(
+        ImageData.imageDataMap[pet.type]!._image,
+        Rect.fromPoints(Offset(0, 0), Offset(512, 512)),
+        Rect.fromPoints(
+          Offset(size.width * 0.1, size.height * 0.1 + 30),
+          Offset(size.width * 0.9, size.height * 0.9 + 30),
+        ),
+        Paint());*/
+    drawImage(canvas, size, pet.type, 0, 20+v, 0.8, 0);
+    for (Accessory a in pet.accessories) {
+      drawImage(canvas, size, a.type, a.xPos, a.yPos + v, a.size, a.angle);
+    }
   }
 
-  Offset convert(Offset input, Size size) {
+  void drawImage(Canvas canvas, Size size, String imageName, double cx, double cy, double scaleFactor, double angle) {
+    double scaledSize = convertDouble(512.0 * scaleFactor, size);
+    Offset c = convertOffset(Offset(256.0 + cx, 256.0 + cy), size);
+    rotate(canvas, c, angle);
+    canvas.drawImageRect(
+        ImageData.imageDataMap[imageName]!._image,
+        Rect.fromPoints(Offset(0, 0), Offset(512, 512)),
+        Rect.fromPoints(
+          Offset(c.dx - scaledSize/2, c.dy - scaledSize/2),
+          Offset(c.dx + scaledSize/2, c.dy + scaledSize/2),
+        ),
+        Paint());
+    rotate(canvas, c, -angle);
+  }
+
+  Offset convertOffset(Offset input, Size size) {
     return Offset(input.dx * size.width / 512.0, input.dy * size.height / 512.0);
+  }
+
+  double convertDouble(double input, Size size) {
+    return input * size.width / 512.0;
   }
 
   void rotate(Canvas canvas, Offset c, double angle) {
@@ -432,7 +459,7 @@ Future<ui.Image> loadImage(String path) async {
 }
 
 class ImageData {
-  static final Map<String, ImageData> petDataMap = new Map<String, ImageData>();
+  static final Map<String, ImageData> imageDataMap = new Map<String, ImageData>();
 
   final String _name;
   late ui.Image _image;
@@ -440,7 +467,7 @@ class ImageData {
   ImageData(this._name) {
     loadImage('assets/' + _name + '.png').then((image) {
       _image = image;
-      petDataMap[_name] = this;
+      imageDataMap[_name] = this;
     });
   }
 
@@ -486,7 +513,6 @@ class Pet {
     List<Accessory> accessories = [];
     for (String id in ids) {
       await manager.accessoriesCollection.doc(id).get().then((DocumentSnapshot document) {
-        print(document.exists);
         accessories.add(Accessory.fromJson(document.data()! as Map<String, dynamic>, id));
       });
     }
@@ -525,15 +551,24 @@ class Accessory {
   String type;
   DateTime date;
   bool inUse;
+  double xPos;
+  double yPos;
+  double angle;
+  double size;
   String? documentId;
 
-  Accessory({required this.type, required this.date, required this.inUse, this.documentId});
+  Accessory({required this.type, required this.date, required this.inUse, required this.xPos, required this.yPos, required this.angle, required this.size, this.documentId});
 
   Accessory.fromJson(Map<String, Object?> json, String id)
       : this(
           type: json['type']! as String,
           inUse: json['in use']! as bool,
           date: DateTime.parse(json['date']! as String),
+          xPos: (json['x pos']! as num).toDouble(),
+          yPos: (json['y pos']! as num).toDouble(),
+          angle: (json['angle']! as num).toDouble(),
+          size: (json['size']! as num).toDouble(),
+          documentId: id,
         );
 
   Map<String, Object?> toJson() {
@@ -541,6 +576,10 @@ class Accessory {
       'type': type,
       'in use': inUse,
       'date': date.toIso8601String(),
+      'x pos': xPos,
+      'y pos': yPos,
+      'angle': angle,
+      'size': size,
     };
   }
 
