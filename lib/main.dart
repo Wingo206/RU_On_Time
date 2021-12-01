@@ -7,6 +7,7 @@ import 'package:ru_on_time/page/calendar.dart';
 import 'package:ru_on_time/page/leaderboard.dart';
 import 'package:ru_on_time/page/pets.dart';
 import 'package:ru_on_time/page/profile.dart';
+import 'package:ru_on_time/page/shop.dart';
 import 'package:ru_on_time/sign_in.dart';
 
 import 'authentication_service.dart';
@@ -111,6 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int currentIndex = 0;
   final screens = [
     ProfilePage(),
+    ShopPage(),
     PetsPage(),
     CalendarPage(),
     AssignmentsPage(),
@@ -137,6 +139,11 @@ class _MyHomePageState extends State<MyHomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profile',
+            backgroundColor: Colors.blue,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.store),
+            label: 'Shop',
             backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(

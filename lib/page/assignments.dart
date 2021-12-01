@@ -52,7 +52,7 @@ class _AssignmentsPageState extends State<AssignmentsPage> {
             onPressed: () {
               setState(() {
                 _showForm = false;
-                context.read<DataManager>().assignmentCollection.add(_currentForm.currentState!.getAssignment().toJson());
+                context.read<DataManager>().assignmentsCollection.add(_currentForm.currentState!.getAssignment().toJson());
                 _currentForm = AssignmentForm();
               });
             },
@@ -228,7 +228,7 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
   bool _editing = false;
 
   Future<void> updateData(Map<String, dynamic> data) async {
-    await context.read<DataManager>().assignmentCollection.doc(widget._assignment.documentID).update(data);
+    await context.read<DataManager>().assignmentsCollection.doc(widget._assignment.documentID).update(data);
   }
 
   @override
@@ -248,7 +248,7 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
                 onPressed: () {
                   setState(() {
                     //TODO confirmation?
-                    context.read<DataManager>().assignmentCollection.doc(widget._assignment.documentID).delete();
+                    context.read<DataManager>().assignmentsCollection.doc(widget._assignment.documentID).delete();
                   });
                 },
               ),

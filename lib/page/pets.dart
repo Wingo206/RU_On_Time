@@ -1,12 +1,27 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui show Image;
 
 import 'package:flutter/services.dart';
 import 'package:ru_on_time/data_manager.dart';
 import 'package:provider/src/provider.dart';
+
+List<Pet> testPets = [
+  Pet(type: "cat", name: "Binky", love: 30, food: 20, cleanliness: 60, startDate: DateTime.now(), lastUpdate: DateTime.now()),
+  Pet(type: "dog", name: "Buster", love: 40, food: 30, cleanliness: 90, startDate: DateTime.now(), lastUpdate: DateTime.now()),
+  Pet(type: "dragon", name: "Broga", love: 70, food: 40, cleanliness: 80, startDate: DateTime.now(), lastUpdate: DateTime.now()),
+  Pet(type: "penguin", name: "Yoiticus", love: 80, food: 10, cleanliness: 50, startDate: DateTime.now(), lastUpdate: DateTime.now()),
+];
+
+int pettingCost = 1;
+double pettingAmount = 20.0;
+int feedingCost = 2;
+double feedingAmount = 20.0;
+int cleaningCost = 3;
+double cleaningAmount = 20.0;
 
 class PetsPage extends StatelessWidget {
   @override
@@ -18,25 +33,44 @@ class PetsPage extends StatelessWidget {
           children: [
             CurrencyDisplay(),
             SizedBox(height: 10.0),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-                child: ListView(
-                  physics: BouncingScrollPhysics(),
-                  children: [
-                    PetWidget(Pet(type: "cat", name: "Binky", love: 30, food: 20, cleanliness: 60, startDate: DateTime.now(), lastUpdate: DateTime.now())),
-                    PetWidget(Pet(type: "dog", name: "Buster", love: 40, food: 30, cleanliness: 90, startDate: DateTime.now(), lastUpdate: DateTime.now())),
-                    PetWidget(Pet(type: "dragon", name: "Broga", love: 70, food: 40, cleanliness: 80, startDate: DateTime.now(), lastUpdate: DateTime.now())),
-                    PetWidget(Pet(type: "penguin", name: "Yoiticus", love: 80, food: 10, cleanliness: 50, startDate: DateTime.now(), lastUpdate: DateTime.now())),
-                    SizedBox(height: 10.0),
-                  ],
-                ),
-              ),
-            ),
+            StreamBuilder<QuerySnapshot>(
+              stream: context.read<DataManager>().petStream,
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Something went wrong');
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Text("Loading");
+                }
+                return PetList(snapshot.data!.docs.map((DocumentSnapshot document) => Pet.fromJson(document.data()! as Map<String, dynamic>, document.id)).toList());
+              },
+            )
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class PetList extends StatelessWidget {
+  final List<Pet> _pets;
+
+  PetList(this._pets);
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 10.0),
+          child: ListView(
+            physics: BouncingScrollPhysics(),
+            children: _pets.map((Pet p) => PetWidget(p)).toList(),
+          ),
         ),
       ),
     );
@@ -105,7 +139,7 @@ class _CurrencyDisplayState extends State<CurrencyDisplay> {
 }
 
 class PetWidget extends StatefulWidget {
-  Pet pet;
+  final Pet pet;
 
   PetWidget(this.pet);
 
@@ -158,27 +192,57 @@ class _PetWidgetState extends State<PetWidget> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        print("petting code"); //TODO
-                      });
+                      if (widget.pet.love < 100.0) {
+                        widget.pet.love += pettingAmount;
+                        widget.pet.love = min(widget.pet.love, 100.0);
+                        context.read<DataManager>().getUserData().then((UserData userData) {
+                          if (userData.coins > pettingCost) {
+                            userData.coins -= pettingCost;
+                            widget.pet.updateDocument(context);
+                            userData.updateDocument(context);
+                          } else {
+                            print("not enough coins");
+                          }
+                        });
+                      }
                     },
                     child: Text("Pet (\$1)"),
                   ),
                   SizedBox(width: 5.0),
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        print("feeding code"); //TODO
-                      });
+                      if (widget.pet.food < 100.0) {
+                        widget.pet.food += feedingAmount;
+                        widget.pet.food = min(widget.pet.food, 100.0);
+                        context.read<DataManager>().getUserData().then((UserData userData) {
+                          if (userData.coins > feedingCost) {
+                            userData.coins -= feedingCost;
+                            widget.pet.updateDocument(context);
+                            userData.updateDocument(context);
+                          } else {
+                            print("not enough coins");
+                          }
+                        });
+                      }
                     },
                     child: Text("Feed (\$2)"),
                   ),
                   SizedBox(width: 5.0),
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        print("cleaning code"); //TODO
-                      });
+                      if (widget.pet.cleanliness < 100.0) {
+                        widget.pet.cleanliness += cleaningAmount;
+                        widget.pet.cleanliness = min(widget.pet.cleanliness, 100.0);
+                        context.read<DataManager>().getUserData().then((UserData userData) {
+                          if (userData.coins > cleaningCost) {
+                            userData.coins -= cleaningCost;
+                            widget.pet.updateDocument(context);
+                            userData.updateDocument(context);
+                          } else {
+                            print("not enough coins");
+                          }
+                        });
+                      }
                     },
                     child: Text("Clean (\$3)"),
                   ),
@@ -346,9 +410,9 @@ class Pet {
       : this(
           type: json['type']! as String,
           name: json['name']! as String,
-          love: json['love']! as double,
-          food: json['food']! as double,
-          cleanliness: json['cleanliness']! as double,
+          love: (json['love']! as num).toDouble(),
+          food: (json['food']! as num).toDouble(),
+          cleanliness: (json['cleanliness']! as num).toDouble(),
           startDate: DateTime.parse(json['start date']! as String),
           lastUpdate: DateTime.parse(json['last update']! as String),
           documentID: id,
@@ -364,5 +428,9 @@ class Pet {
       'start date': startDate.toIso8601String(),
       'last update': lastUpdate.toIso8601String(),
     };
+  }
+
+  Future<void> updateDocument(BuildContext context) async {
+    context.read<DataManager>().petsCollection.doc(documentID).update(toJson());
   }
 }

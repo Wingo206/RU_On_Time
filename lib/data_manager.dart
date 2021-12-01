@@ -1,19 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/src/provider.dart';
 
 class DataManager {
   String uid;
 
-  CollectionReference usersCollection =
-      FirebaseFirestore.instance.collection('users');
+  CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
 
   DocumentReference get userRef => usersCollection.doc(uid);
 
-  CollectionReference get assignmentCollection =>
-      usersCollection.doc(uid).collection('assignments');
+  CollectionReference get assignmentsCollection => usersCollection.doc(uid).collection('assignments');
 
-  Stream<QuerySnapshot> get assignmentStream =>
-      assignmentCollection.orderBy('due date', descending: false).snapshots();
+  Stream<QuerySnapshot> get assignmentStream => assignmentsCollection.orderBy('due date', descending: false).snapshots();
+
+  CollectionReference get petsCollection => usersCollection.doc(uid).collection('pets');
+
+  Stream<QuerySnapshot> get petStream => petsCollection.orderBy('start date', descending: false).snapshots();
 
   DataManager(this.uid);
 
@@ -27,8 +30,8 @@ class DataManager {
       if (snapshot.exists) {
       } else {
         manager.userRef.set(
-          UserInfo(
-            name: "unset",
+          UserData(
+            name: "Default Username",
             email: _firebaseAuth.currentUser!.email!,
             coins: 0,
             gems: 0,
@@ -41,24 +44,24 @@ class DataManager {
     return manager;
   }
 
-  Future<UserInfo> getUserInfo() {
+  Future<UserData> getUserData() {
     return userRef.get().then(
       (DocumentSnapshot snapshot) {
-        return UserInfo.fromJson(snapshot.data()! as Map<String, dynamic>, uid);
+        return UserData.fromJson(snapshot.data()! as Map<String, dynamic>, uid);
       },
     );
   }
 }
 
-class UserInfo {
-  final String name;
-  final String email;
-  final int coins;
-  final int gems;
-  final int xp;
+class UserData {
+  String name;
+  String email;
+  int coins;
+  int gems;
+  int xp;
   String? documentID;
 
-  UserInfo({
+  UserData({
     required this.name,
     required this.email,
     required this.coins,
@@ -67,7 +70,7 @@ class UserInfo {
     this.documentID,
   });
 
-  UserInfo.fromJson(Map<String, Object?> json, String id)
+  UserData.fromJson(Map<String, Object?> json, String id)
       : this(
           name: json['name']! as String,
           email: json['email']! as String,
@@ -85,5 +88,9 @@ class UserInfo {
       'gems': gems,
       'xp': xp,
     };
+  }
+
+  Future<void> updateDocument(BuildContext context) async {
+    context.read<DataManager>().usersCollection.doc(documentID).update(toJson());
   }
 }

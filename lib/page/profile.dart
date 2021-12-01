@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
+import 'package:ru_on_time/authentication_service.dart';
 import 'package:ru_on_time/page/pets.dart';
 
-import '../authentication_service.dart';
 import '../data_manager.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -13,20 +12,45 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  UserData? _userData;
+
   @override
   Widget build(BuildContext context) {
-    final profile = UserPreferences.myProfile;
+    DataManager dataManager = context.read<DataManager>();
+    return StreamBuilder<DocumentSnapshot>(
+      stream: dataManager.usersCollection.doc(dataManager.uid).snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Text('Something went wrong');
+        }
+        if (snapshot.hasData && !snapshot.data!.exists) {
+          return Text("Document does not exist");
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          if (_userData == null) {
+            return Text("Loading");
+          }
+          return buildDisplay(context);
+        }
+        _userData = UserData.fromJson(snapshot.data!.data()! as Map<String, dynamic>, dataManager.uid);
+        return buildDisplay(context);
+      },
+    );
+
+  }
+
+  Widget buildDisplay(BuildContext context) {
     return Scaffold(
       body: ListView(
         physics: BouncingScrollPhysics(),
         children: [
           NumbersWidget(),
           ProfileWidget(
-            userImagePath: profile.userImagePath,
+            userImagePath: 'https://images.squarespace-cdn.com/content/v1/551c36e1e4b072084065ac42/1551130460935-CKV711P68O4F5XCJ0161/IMG_34391.jpg',
             onClicked: () async {},
           ),
           const SizedBox(height: 24),
-          buildName(profile),
+          buildName(_userData!),
           buildStatBar("Level", 20, 100),
           MoreNumbersWidget(),
           ElevatedButton(
@@ -40,15 +64,15 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget buildName(Profile profile) => Column(
+  Widget buildName(UserData userData) => Column(
         children: [
           Text(
-            profile.name,
+            userData.name,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
           ),
           const SizedBox(height: 4),
           Text(
-            profile.email,
+            userData.email,
             style: TextStyle(color: Colors.grey),
           ),
         ],
