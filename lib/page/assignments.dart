@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 import 'package:intl/intl.dart';
 
-import '../UtilWidgets.dart';
+import '../util_widgets.dart';
 import '../data_manager.dart';
 
 DateFormat _dateFormat = DateFormat('MMM d, y,').add_jm();

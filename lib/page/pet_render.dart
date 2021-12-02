@@ -10,7 +10,7 @@ import 'package:ru_on_time/data_manager.dart';
 import 'package:provider/src/provider.dart';
 import 'package:intl/intl.dart';
 
-import '../UtilWidgets.dart';
+import '../util_widgets.dart';
 
 class PetDisplay extends StatefulWidget {
   final Size size;
@@ -122,21 +122,24 @@ class _PetPainter extends CustomPainter {
 }
 
 class AccessoryWidget extends StatelessWidget {
+  static final double height = 160;
   final Accessory accessory;
-  final Color color;
+  final Color? color;
 
-  AccessoryWidget(this.accessory, this.color);
+  AccessoryWidget({required this.accessory, this.color});
 
   @override
   Widget build(BuildContext context) {
     return OutlineBox(
+      borderColor: color,
       child: Column(
         children: [
           AccessoryDisplay(size: Size(100, 100), accessory: accessory),
           SizedBox(height: 5.0),
           Text(Constants.displayNameMap[accessory.type]!),
           SizedBox(height: 5.0),
-          Text(DateFormat('MMM d, y').format(accessory.date)),
+          //Text(DateFormat('MMM d, y').format(accessory.date)),
+          Text((accessory.petId == "") ? "" : "(In Use)"),
         ],
       ),
     );
@@ -248,7 +251,6 @@ class Pet {
         accessories.add(Accessory.fromJson(document.data()! as Map<String, dynamic>, id));
       });
     }
-    print(accessories.map((Accessory a) => a.documentId).toList());
     return Pet(
       type: json['type']! as String,
       name: json['name']! as String,
@@ -283,19 +285,19 @@ class Pet {
 class Accessory {
   String type;
   DateTime date;
-  bool inUse;
+  String petId;
   double xPos;
   double yPos;
   double angle;
   double size;
   String? documentId;
 
-  Accessory({required this.type, required this.date, required this.inUse, required this.xPos, required this.yPos, required this.angle, required this.size, this.documentId});
+  Accessory({required this.type, required this.date, required this.petId, required this.xPos, required this.yPos, required this.angle, required this.size, this.documentId});
 
   Accessory.fromJson(Map<String, Object?> json, String id)
       : this(
           type: json['type']! as String,
-          inUse: json['in use']! as bool,
+          petId: json['petId']! as String,
           date: DateTime.parse(json['date']! as String),
           xPos: (json['x pos']! as num).toDouble(),
           yPos: (json['y pos']! as num).toDouble(),
@@ -307,7 +309,7 @@ class Accessory {
   Map<String, Object?> toJson() {
     return {
       'type': type,
-      'in use': inUse,
+      'petId': petId,
       'date': date.toIso8601String(),
       'x pos': xPos,
       'y pos': yPos,

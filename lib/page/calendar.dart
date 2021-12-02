@@ -7,7 +7,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/src/provider.dart';
 import 'package:intl/intl.dart';
 
-import '../UtilWidgets.dart';
+import '../util_widgets.dart';
 
 final double scaleFactor = 0.8;
 

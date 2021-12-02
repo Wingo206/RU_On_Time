@@ -19,7 +19,7 @@ class DataManager {
   Stream<QuerySnapshot> get petStream => petsCollection.orderBy('start date', descending: false).snapshots();
 
   CollectionReference get accessoriesCollection => usersCollection.doc(uid).collection('accessories');
-  Stream<QuerySnapshot> get accessoriesStream => petsCollection.orderBy('date', descending: false).snapshots();
+  Stream<QuerySnapshot> get accessoriesStream => accessoriesCollection.orderBy('date', descending: false).snapshots();
 
   DataManager(this.uid);
 

@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ru_on_time/data_manager.dart';
 import 'package:ru_on_time/page/pet_render.dart';
 import 'package:provider/src/provider.dart';
+import 'package:ru_on_time/page/pets.dart';
 
-import '../UtilWidgets.dart';
+import '../util_widgets.dart';
 
 class ShopPage extends StatelessWidget {
   @override
@@ -46,19 +48,7 @@ class ShopPage extends StatelessWidget {
             ),
             SizedBox(height: 10.0),
             Text("Your Accessories"),
-            SizedBox(
-              height: 240,
-              child: OutlineBox(
-                padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-                child: PaddingListView(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: Constants.accessories.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Text("insert accessory here");
-                  },
-                ),
-              ),
-            ),
+            AccessoryMenu(),
           ],
         ),
       ),
@@ -86,6 +76,7 @@ class PetShopWidget extends StatelessWidget {
             size: Size(100, 100),
             pet: pet,
           ),
+          Spacer(),
           ElevatedButton(
             child: Row(
               children: [
@@ -119,7 +110,7 @@ class AccessoryShopWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Accessory accessory = Accessory(type: _type, date: DateTime.now(), inUse: false, xPos: 0, yPos: 0, angle: 0, size: 0.5);
+    Accessory accessory = Accessory(type: _type, date: DateTime.now(), petId: "", xPos: 0, yPos: 0, angle: 0, size: 0.5);
     return OutlineBox(
       child: Column(
         children: [
@@ -131,6 +122,7 @@ class AccessoryShopWidget extends StatelessWidget {
             size: Size(100, 100),
             accessory: accessory,
           ),
+          Spacer(),
           ElevatedButton(
             child: Row(
               children: [
@@ -156,13 +148,165 @@ class AccessoryShopWidget extends StatelessWidget {
   }
 }
 
-/*
 class AccessoryMenu extends StatefulWidget {
   @override
   _AccessoryMenuState createState() => _AccessoryMenuState();
 }
 
 class _AccessoryMenuState extends State<AccessoryMenu> {
+  int _selectedIndex = -1;
+  List<Accessory> _accessories = [];
+  List<Pet> _pets = [];
+
+  @override
+  Widget build(BuildContext context) {
+    DataManager dataManager = context.read<DataManager>();
+    return FutureBuilder<QuerySnapshot>(
+      future: dataManager.petsCollection.orderBy('start date', descending: false).get(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Text('Something went wrong 1');
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+        } else {
+          return FutureBuilder<List<Pet>>(
+            future: createPetList(dataManager, snapshot.data!),
+            builder: (BuildContext context, AsyncSnapshot<List<Pet>> pets) {
+              if (pets.hasError) {
+                return Text('Something went wrong 2');
+              }
+              if (pets.connectionState == ConnectionState.waiting) {
+              } else {
+                _pets = pets.data ?? [];
+              }
+              return StreamBuilder<QuerySnapshot>(
+                stream: dataManager.accessoriesStream,
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Something went wrong 3');
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                  } else {
+                    _accessories = snapshot.data!.docs.map((DocumentSnapshot document) => Accessory.fromJson(document.data()! as Map<String, dynamic>, document.id)).toList();
+                  }
+                  return buildDisplay(context);
+                },
+              );
+            },
+          );
+        }
+        return buildDisplay(context);
+      },
+    );
+  }
+
+  Widget buildDisplay(BuildContext context) {
+    List<Widget> columnWidgets = [];
+
+    if (_selectedIndex == -1) {
+      columnWidgets.add(
+        SizedBox(
+          height: AccessoryWidget.height + 20 + 10, //20 for padding, 10 for scrollbar
+          child: PaddingListView(
+            scrollDirection: Axis.horizontal,
+            itemCount: _accessories.length,
+            itemBuilder: (BuildContext context, int index) {
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (_selectedIndex == index) {
+                      _selectedIndex = -1;
+                    } else {
+                      _selectedIndex = index;
+                    }
+                  });
+                },
+                child: AccessoryWidget(
+                  accessory: _accessories[index],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      if (_pets.length == 0) {
+        columnWidgets.add(CircularProgressIndicator());
+      } else {
+        columnWidgets.add(
+          SizedBox(
+            height: PetWidgetMini.height + 20 + 10,
+            child: PaddingListView(
+              scrollDirection: Axis.horizontal,
+              itemCount: _pets.length,
+              itemBuilder: (BuildContext context, int index) {
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      Accessory a = _accessories[_selectedIndex];
+                      if (a.petId != "") {
+                        Pet old = getPetWithId(_pets, a.petId)!;
+                        old.accessories.remove(getAccessoryWithId(old.accessories, a.documentId!));
+                        old.updateDocument(context);
+                      }
+                      Pet selected = _pets[index];
+                      a.petId = selected.documentId!;
+                      selected.accessories.add(a);
+                      a.updateDocument(context).then((_) {
+                        selected.updateDocument(context).then((_) {
+                          setState(() {
+                            _selectedIndex = -1;
+                          });
+                        });
+                      });
+                    });
+                  },
+                  child: PetWidgetMini(
+                    pet: _pets[index],
+                    color: (_pets[index].documentId == _accessories[_selectedIndex].petId) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor,
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }
+      columnWidgets.add(
+        ElevatedButton(
+          child: Text("Cancel"),
+          onPressed: () {
+            setState(() {
+              _selectedIndex = -1;
+            });
+          },
+        ),
+      );
+    }
+
+    return OutlineBox(
+      padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+      child: Column(
+        children: columnWidgets,
+      ),
+    );
+  }
+
+  Pet? getPetWithId(List<Pet> pets, String id) {
+    for (int i = 0; i < pets.length; i++) {
+      if (pets[i].documentId == id) {
+        return pets[i];
+      }
+    }
+    return null;
+  }
+
+  Accessory? getAccessoryWithId(List<Accessory> accessories, String id) {
+    for (int i = 0; i < accessories.length; i++) {
+      if (accessories[i].documentId == id) {
+        return accessories[i];
+      }
+    }
+    return null;
+  }
 
 }
-*/

@@ -64,14 +64,15 @@ class _CurrencyDisplayState extends State<CurrencyDisplay> {
 class OutlineBox extends StatelessWidget {
   final Widget child;
   final EdgeInsets? padding;
+  final Color? borderColor;
 
-  OutlineBox({required this.child, this.padding});
+  OutlineBox({required this.child, this.padding, this.borderColor});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
+        border: Border.all(width: 2.0, color: borderColor ?? Theme.of(context).dividerColor),
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
       child: Padding(
@@ -91,18 +92,23 @@ class PaddingListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      scrollDirection: scrollDirection,
-      physics: BouncingScrollPhysics(),
-      itemCount: itemCount + 2,
-      itemBuilder: (BuildContext context, int index) {
-        if (index == 0 || index == itemCount + 1) {
-          return SizedBox();
-        } else {
-          return itemBuilder(context, index - 1);
-        }
-      },
-      separatorBuilder: (BuildContext context, int index) => SizedBox(width: 10.0),
+    return Scrollbar(
+      child: Padding(
+        padding: (scrollDirection == Axis.vertical)?EdgeInsets.only(right: 10):EdgeInsets.only(bottom:10),
+        child: ListView.separated(
+          scrollDirection: scrollDirection,
+          physics: BouncingScrollPhysics(),
+          itemCount: itemCount + 2,
+          itemBuilder: (BuildContext context, int index) {
+            if (index == 0 || index == itemCount + 1) {
+              return SizedBox();
+            } else {
+              return itemBuilder(context, index - 1);
+            }
+          },
+          separatorBuilder: (BuildContext context, int index) => SizedBox(width: 10.0),
+        ),
+      ),
     );
   }
 }

@@ -9,7 +9,7 @@ import 'package:provider/src/provider.dart';
 import 'package:ru_on_time/page/pet_render.dart';
 import 'package:ru_on_time/page/profile.dart';
 
-import '../UtilWidgets.dart';
+import '../util_widgets.dart';
 
 int pettingCost = 1;
 double pettingAmount = 20.0;
@@ -19,6 +19,7 @@ int cleaningCost = 3;
 double cleaningAmount = 20.0;
 
 class PetsPage extends StatelessWidget {
+  List<Pet> _pets = [];
   @override
   Widget build(BuildContext context) {
     DataManager dataManager = context.read<DataManager>();
@@ -36,18 +37,23 @@ class PetsPage extends StatelessWidget {
                   return Text('Something went wrong');
                 }
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Text("Loading");
+                  return CircularProgressIndicator();
                 }
                 return FutureBuilder<List<Pet>>(
                   future: createPetList(dataManager, snapshot.data!),
                   builder: (BuildContext context, AsyncSnapshot<List<Pet>> pets) {
-                    if (snapshot.hasError) {
+                    if (pets.hasError) {
                       return Text('Something went wrong');
                     }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Text("Loading");
+                    if (pets.connectionState == ConnectionState.waiting) {
+                      //return Text("Loading");
+                    } else {
+                      _pets = pets.data ?? [];
                     }
-                    return PetList(pets.data ?? []);
+                    if (_pets.length == 0) {
+                      return CircularProgressIndicator();
+                    }
+                    return PetList(_pets);
                   },
                 );
 //                return PetList(snapshot.data!.docs.map((DocumentSnapshot document) => Pet.createFromJson(dataManager, document.data()! as Map<String, dynamic>, document.id)).toList());
@@ -58,17 +64,17 @@ class PetsPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Future<List<Pet>> createPetList(DataManager dataManager, QuerySnapshot snapshot) async {
-    List<Pet> pets = [];
-    for (DocumentSnapshot document in snapshot.docs) {
-      await Pet.createFromJson(dataManager, document.data()! as Map<String, dynamic>, document.id).then((Pet p) {
-        pets.add(p);
-      });
-    }
-
-    return pets;
+Future<List<Pet>> createPetList(DataManager dataManager, QuerySnapshot snapshot) async {
+  List<Pet> pets = [];
+  for (DocumentSnapshot document in snapshot.docs) {
+    await Pet.createFromJson(dataManager, document.data()! as Map<String, dynamic>, document.id).then((Pet p) {
+      pets.add(p);
+    });
   }
+
+  return pets;
 }
 
 class PetList extends StatelessWidget {
@@ -266,7 +272,7 @@ class _PetWidgetState extends State<PetWidget> {
                 }
               });
             },
-            child: AccessoryWidget(widget.pet.accessories[i], (_selectedIndex == i) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor),
+            child: AccessoryWidget(accessory: widget.pet.accessories[i], color: (_selectedIndex == i) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor),
           ),
         );
         accessoryWidgets.add(SizedBox(width: 10.0));
@@ -276,7 +282,7 @@ class _PetWidgetState extends State<PetWidget> {
         OutlineBox(
           padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
           child: SizedBox(
-            height: 200,
+            height: AccessoryWidget.height + 20,
             child: ListView(
               physics: BouncingScrollPhysics(),
               scrollDirection: Axis.horizontal,
@@ -367,6 +373,28 @@ class _PetWidgetState extends State<PetWidget> {
           ),
           SizedBox(height: 5.0),
           LinearProgressIndicator(value: value / maxValue),
+        ],
+      ),
+    );
+  }
+}
+
+class PetWidgetMini extends StatelessWidget {
+  static final double height = 130;
+  final Pet pet;
+  final Color color;
+
+  PetWidgetMini({required this.pet, required this.color});
+
+  @override
+  Widget build(BuildContext context ) {
+    return OutlineBox(
+      borderColor: color,
+      child: Column(
+        children: [
+          Text(pet.name),
+          SizedBox(height: 5.0),
+          PetDisplay(size: Size(100, 100), pet: pet),
         ],
       ),
     );
