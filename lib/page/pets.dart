@@ -38,7 +38,7 @@ class PetsPage extends StatelessWidget {
                   return Text('Something went wrong');
                 }
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
+                  return CenteredLoading();
                 }
                 return FutureBuilder<List<Pet>>(
                   future: createPetList(dataManager, snapshot.data!),
@@ -52,12 +52,11 @@ class PetsPage extends StatelessWidget {
                       _pets = pets.data ?? [];
                     }
                     if (_pets.length == 0) {
-                      return CircularProgressIndicator();
+                      return CenteredLoading();
                     }
                     return PetList(_pets);
                   },
                 );
-//                return PetList(snapshot.data!.docs.map((DocumentSnapshot document) => Pet.createFromJson(dataManager, document.data()! as Map<String, dynamic>, document.id)).toList());
               },
             )
           ],
@@ -177,11 +176,13 @@ class _PetWidgetState extends State<PetWidget> {
             ElevatedButton(
               onPressed: () {
                 if (widget.pet.love.round() < 100.0) {
-                  widget.pet.love += pettingAmount;
-                  widget.pet.love = min(widget.pet.love, 100.0);
+                  double amountRemaining = 100.0 - widget.pet.love;
+                  double amount = min(amountRemaining, pettingAmount);
+                  widget.pet.love += amount;
                   context.read<DataManager>().getUserData().then((UserData userData) {
                     if (userData.hearts >= pettingCost) {
                       userData.hearts -= pettingCost;
+                      userData.xp += amount;
                       widget.pet.updateDocument(context);
                       userData.updateDocument(context);
                     } else {
@@ -201,11 +202,13 @@ class _PetWidgetState extends State<PetWidget> {
             ElevatedButton(
               onPressed: () {
                 if (widget.pet.food.round() < 100.0) {
-                  widget.pet.food += feedingAmount;
-                  widget.pet.food = min(widget.pet.food, 100.0);
+                  double amountRemaining = 100.0 - widget.pet.food;
+                  double amount = min(amountRemaining, feedingAmount);
+                  widget.pet.food += amount;
                   context.read<DataManager>().getUserData().then((UserData userData) {
                     if (userData.hearts >= feedingCost) {
                       userData.hearts -= feedingCost;
+                      userData.xp += amount;
                       widget.pet.updateDocument(context);
                       userData.updateDocument(context);
                     } else {
@@ -225,11 +228,13 @@ class _PetWidgetState extends State<PetWidget> {
             ElevatedButton(
               onPressed: () {
                 if (widget.pet.cleanliness.round() < 100.0) {
-                  widget.pet.cleanliness += cleaningAmount;
-                  widget.pet.cleanliness = min(widget.pet.cleanliness, 100.0);
+                  double amountRemaining = 100.0 - widget.pet.cleanliness;
+                  double amount = min(amountRemaining, cleaningAmount);
+                  widget.pet.cleanliness += amount;
                   context.read<DataManager>().getUserData().then((UserData userData) {
                     if (userData.hearts >= cleaningCost) {
                       userData.hearts -= cleaningCost;
+                      userData.xp += amount;
                       widget.pet.updateDocument(context);
                       userData.updateDocument(context);
                     } else {
@@ -257,7 +262,6 @@ class _PetWidgetState extends State<PetWidget> {
     }
 
     if (widget.pet.accessories.length > 0) {
-
       columnWidgets.add(Text("Accessories"));
       columnWidgets.add(
         PaddingListView(

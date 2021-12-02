@@ -174,23 +174,28 @@ class Assignment {
   Future<void> updateDocument(BuildContext context) async {
     context.read<DataManager>().assignmentsCollection.doc(documentId).update(toJson());
   }
-
 }
 
 class UserData {
   String name;
   String email;
   int hearts;
+  int heartsTotal;
   int gems;
-  int xp;
+  int gemsTotal;
+  double xp;
+  int completed;
   String? documentID;
 
   UserData({
     required this.name,
     required this.email,
     required this.hearts,
+    required this.heartsTotal,
     required this.gems,
+    required this.gemsTotal,
     required this.xp,
+    required this.completed,
     this.documentID,
   });
 
@@ -199,8 +204,11 @@ class UserData {
           name: json['name']! as String,
           email: json['email']! as String,
           hearts: json['hearts']! as int,
+          heartsTotal: json['hearts total']! as int,
           gems: json['gems']! as int,
-          xp: json['xp']! as int,
+          gemsTotal: json['gems total']! as int,
+          xp: (json['xp']! as num).toDouble(),
+          completed: json['completed']! as int,
           documentID: id,
         );
 
@@ -209,9 +217,22 @@ class UserData {
       'name': name,
       'email': email,
       'hearts': hearts,
+      'hearts total': heartsTotal,
       'gems': gems,
+      'gems total': gemsTotal,
       'xp': xp,
+      'completed': completed,
     };
+  }
+
+  void addHearts(int amount) {
+    hearts += amount;
+    heartsTotal += amount;
+  }
+
+  void addGems(int amount) {
+    gems += amount;
+    gemsTotal += amount;
   }
 
   Future<void> updateDocument(BuildContext context) async {

@@ -61,6 +61,28 @@ class _CurrencyDisplayState extends State<CurrencyDisplay> {
   }
 }
 
+class LoadingScaffold extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class CenteredLoading extends StatelessWidget {
+  @override
+  Widget build (BuildContext context) {
+    return Expanded(
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
 class OutlineBox extends StatelessWidget {
   final Widget child;
   final EdgeInsets? padding;

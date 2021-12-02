@@ -39,8 +39,11 @@ class DataManager {
             name: "Default Username",
             email: _firebaseAuth.currentUser!.email!,
             hearts: 0,
+            heartsTotal: 0,
             gems: 0,
+            gemsTotal: 0,
             xp: 0,
+            completed: 0,
           ).toJson(),
         );
       }

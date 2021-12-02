@@ -8,7 +8,7 @@ class LeaderboardPage extends StatelessWidget{
     return Center(
       child: Column(
         children: [
-          Text('Leaderboard', style: TextStyle(fontSize: 60))
+
         ],
       ),
     );

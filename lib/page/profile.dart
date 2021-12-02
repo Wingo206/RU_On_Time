@@ -14,6 +14,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   UserData? _userData;
+  bool _editingName = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +30,7 @@ class _ProfilePageState extends State<ProfilePage> {
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
           if (_userData == null) {
-            return Text("Loading");
+            return CircularProgressIndicator();
           }
           return buildDisplay(context);
         }
@@ -37,175 +38,125 @@ class _ProfilePageState extends State<ProfilePage> {
         return buildDisplay(context);
       },
     );
-
   }
 
   Widget buildDisplay(BuildContext context) {
+    TextEditingController usernameController = TextEditingController(text: _userData!.name);
     return Scaffold(
       body: ListView(
         physics: BouncingScrollPhysics(),
         children: [
-          NumbersWidget(),
-          ProfileWidget(
-            userImagePath: 'https://images.squarespace-cdn.com/content/v1/551c36e1e4b072084065ac42/1551130460935-CKV711P68O4F5XCJ0161/IMG_34391.jpg',
-            onClicked: () async {},
-          ),
-          const SizedBox(height: 24),
-          buildName(_userData!),
-          buildStatBar("Level", 20, 100),
-          MoreNumbersWidget(),
-          ElevatedButton(
-            onPressed: () {
-              context.read<AuthenticationService>().signOut();
-            },
-            child: Text("JANKY SIGN OUT BUTTON"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildName(UserData userData) => Column(
-        children: [
-          Text(
-            userData.name,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            userData.email,
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
-      );
-}
-
-class Profile {
-  final String userImagePath;
-  final String name;
-  final String email;
-  final String petImagePath;
-
-  const Profile({
-    required this.userImagePath,
-    required this.name,
-    required this.email,
-    required this.petImagePath,
-  });
-}
-
-class UserPreferences {
-  static const myProfile = Profile(
-    userImagePath: 'https://images.squarespace-cdn.com/content/v1/551c36e1e4b072084065ac42/1551130460935-CKV711P68O4F5XCJ0161/IMG_34391.jpg',
-    name: 'Hazem Zaky',
-    email: 'hgz5@scarletmail.rutgers.edu',
-    petImagePath: '',
-  );
-}
-
-class ProfileWidget extends StatelessWidget {
-  final String userImagePath;
-  final VoidCallback onClicked;
-
-  const ProfileWidget({
-    Key? key,
-    required this.userImagePath,
-    required this.onClicked,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
-
-    return Center(
-      child: buildImage(),
-    );
-  }
-
-  Widget buildImage() {
-    final userImage = NetworkImage(userImagePath);
-
-    return ClipOval(
-      child: Material(
-        color: Colors.transparent,
-        child: Ink.image(
-          image: userImage,
-          fit: BoxFit.cover,
-          width: 256,
-          height: 256,
-          child: InkWell(onTap: onClicked),
-        ),
-      ),
-    );
-  }
-}
-
-class NumbersWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-        child: Padding(
+          Padding(
             padding: EdgeInsets.all(10.0),
-            child: Column(children: [
-              CurrencyDisplay(),
-            ])));
+            child: CurrencyDisplay(),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  (_editingName)
+                      ? IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _editingName = false;
+                            });
+                          },
+                          icon: Icon(Icons.cancel_outlined),
+                        )
+                      : SizedBox(width: 48.0),
+                  (_editingName)
+                      ? Padding(
+                          padding: EdgeInsets.only(bottom: 5.0),
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width - 20 - 48 - 48,
+                            child: TextField(
+                              controller: usernameController,
+                              decoration: InputDecoration(
+                                labelText: "Username",
+                              ),
+                            ),
+                          ),
+                        )
+                      : Expanded(
+                          child: Text(
+                            _userData!.name,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_editingName) {
+                          _editingName = false;
+                          if (_userData!.name != usernameController.text.trim()) {
+                            _userData!.name = usernameController.text.trim();
+                            _userData!.updateDocument(context);
+                          }
+                        } else {
+                          _editingName = true;
+                        }
+                      });
+                    },
+                    icon: Icon((_editingName) ? Icons.check : Icons.edit),
+                  ),
+                ],
+              ),
+              SizedBox(height: 4),
+              Text(
+                _userData!.email,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+          buildButton(context, ((_userData!.xp / 100).round() + 1).toString(), "Level:"),
+          buildStatBar("XP", (_userData!.xp.round() % 100), 100),
+          buildButton(context, _userData!.completed.toString(), "Assignments Completed:"),
+          buildButton(context, _userData!.heartsTotal.toString(), "Total Hearts Earned:"),
+          buildButton(context, _userData!.gemsTotal.toString(), "Total Gems Earned:"),
+          Padding(
+            padding: EdgeInsets.only(left: 10.0, right: 10.0),
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<AuthenticationService>().signOut();
+              },
+              child: Text("Sign Out"),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  Widget buildDivider() => VerticalDivider();
-
-  Widget buildButton(BuildContext context, String value, String text) => MaterialButton(
-        padding: EdgeInsets.all(20.0),
-        onPressed: () {},
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
-            SizedBox(height: 2),
-            Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
-          ],
-        ),
-      );
-}
-
-class MoreNumbersWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+  Widget buildButton(BuildContext context, String value, String text) {
+    return MaterialButton(
+      padding: EdgeInsets.all(10.0),
+      onPressed: () {},
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          buildButton(context, '5', 'Completed'),
-          buildDivider(),
-          buildButton(context, '1', 'To Do'),
+          Text(text, style: TextStyle(fontSize: 20)),
+          Spacer(),
+          Text(value, style: TextStyle(fontSize: 20)),
         ],
-      );
-
-  Widget buildDivider() => VerticalDivider();
-
-  Widget buildButton(BuildContext context, String value, String text) => MaterialButton(
-        padding: EdgeInsets.all(20.0),
-        onPressed: () {},
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
-            SizedBox(height: 2),
-            Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
-          ],
-        ),
-      );
+      ),
+    );
+  }
 }
 
 Widget buildStatBar(String name, double value, double maxValue) {
   return Padding(
-    padding: EdgeInsets.all(10.0),
+    padding: EdgeInsets.only(left: 10.0, right: 10.0),
     child: Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(name),
-            Text(value.toString() + " / " + maxValue.toString()),
+            Text(value.toStringAsFixed(0) + " / " + maxValue.toStringAsFixed(0)),
           ],
         ),
         SizedBox(height: 5.0),

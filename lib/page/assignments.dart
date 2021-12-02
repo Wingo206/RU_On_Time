@@ -316,11 +316,12 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
                           //hearts: (5 - 15) + 1 per 6 hours assignmentLength * extra 10% per day early
                           double hearts = (5*rng.nextDouble()+10) + (assignmentLength / 6.0);
                           hearts = hearts * multiplier;
-                          userData.hearts += hearts.round();
+                          userData.addHearts(hearts.round());
                           //(1-3) + 1 per day assignmentLength
                           double gems = (3*rng.nextDouble()+1) + (assignmentLength / 24.0);
                           gems = gems * multiplier;
-                          userData.gems += gems.round();
+                          userData.addGems(gems.round());
+                          userData.completed++;
 
                           userData.updateDocument(context).then((_) {
                             a.updateDocument(context);

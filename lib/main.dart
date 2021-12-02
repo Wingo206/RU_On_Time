@@ -9,8 +9,7 @@ import 'package:ru_on_time/page/pets.dart';
 import 'package:ru_on_time/page/profile.dart';
 import 'package:ru_on_time/page/shop.dart';
 import 'package:ru_on_time/sign_in.dart';
-import 'package:ru_on_time/page/pet_render.dart';
-
+import 'package:ru_on_time/util_widgets.dart';
 import 'authentication_service.dart';
 import 'data.dart';
 import 'data_manager.dart';
@@ -23,9 +22,7 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
 
-  MyApp() {
-
-  }
+  MyApp() {}
 
   // This widget is the root of your application.
   @override
@@ -41,6 +38,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'RU On Time',
         theme: ThemeData(
           primarySwatch: Colors.red,
@@ -97,12 +95,12 @@ class AuthenticationWrapper extends StatelessWidget {
                   if (snapshot.connectionState == ConnectionState.done) {
                     return MyHomePage();
                   }
-                  return Text("Loading Images...");
+                  return LoadingScaffold();
                 },
               ),
             );
           }
-          return Text("Loading...");
+          return LoadingScaffold();
         },
       );
     } else {
