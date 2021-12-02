@@ -5,7 +5,6 @@ import 'package:ru_on_time/data_manager.dart';
 import 'package:ru_on_time/page/assignments.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/src/provider.dart';
-import 'package:intl/intl.dart';
 
 import '../data.dart';
 import '../util_widgets.dart';
@@ -58,7 +57,7 @@ class _CalendarState extends State<Calendar> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: context.read<DataManager>().assignmentStream,
+      stream: context.read<DataManager>().assignmentStreamFiltered,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         List<Widget> widgetsList = [
           SizedBox(

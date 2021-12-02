@@ -18,10 +18,14 @@ class ShopPage extends StatelessWidget {
           children: [
             CurrencyDisplay(),
             SizedBox(height: 10.0),
-            Text("Your Accessories"),
+            Center(
+              child: Text("Your Accessories"),
+            ),
             AccessoryMenu(),
             SizedBox(height: 10.0),
-            Text("Pet Shop"),
+            Center(
+              child: Text("Pet Shop"),
+            ),
             PaddingListView(
               scrollBar: true,
               childCrossAxisSize: 180,
@@ -32,7 +36,9 @@ class ShopPage extends StatelessWidget {
               },
             ),
             SizedBox(height: 10.0),
-            Text("Accessory Shop"),
+            Center(
+              child: Text("Accessory Shop"),
+            ),
             PaddingListView(
               scrollBar: true,
               childCrossAxisSize: 180,
@@ -236,14 +242,22 @@ class _AccessoryMenuState extends State<AccessoryMenu> {
                 onTap: () {
                   setState(() {
                     Accessory a = _accessories[_selectedIndex];
-                    if (a.petId != "") {
-                      Pet old = getPetWithId(_pets, a.petId)!;
-                      old.accessories.remove(getAccessoryWithId(old.accessories, a.documentId!));
-                      old.updateDocument(context);
-                    }
                     Pet selected = _pets[index];
-                    a.petId = selected.documentId!;
-                    selected.accessories.add(a);
+                    if (a.petId == selected.documentId) {
+                      //take the accessory off
+                      a.petId = "";
+                      selected.accessories.remove(getAccessoryWithId(selected.accessories, a.documentId!));
+                    } else {
+                      if (a.petId != "") {
+                        //accessory is applied to a different pet
+                        Pet old = getPetWithId(_pets, a.petId)!;
+                        old.accessories.remove(getAccessoryWithId(old.accessories, a.documentId!));
+                        old.updateDocument(context);
+                      }
+                      a.petId = selected.documentId!;
+                      selected.accessories.add(a);
+                    }
+
                     a.updateDocument(context).then((_) {
                       selected.updateDocument(context).then((_) {
                         setState(() {

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,52 +19,83 @@ class AssignmentsPage extends StatefulWidget {
 
 class _AssignmentsPageState extends State<AssignmentsPage> {
   bool _showForm = false;
+  bool _showCompleted = false;
   AssignmentForm _currentForm = AssignmentForm();
+  List<Assignment> _assignments = [];
 
   @override
   Widget build(BuildContext context) {
     List<Widget> rowWidgets = [
-      Padding(
-        padding: EdgeInsets.only(left: 10.0, right: 10.0, top: 10.0),
-        child: ElevatedButton(
-          onPressed: () {
-            setState(() {
-              _showForm = !_showForm;
-            });
-          },
-          child: Text((_showForm) ? "Cancel" : "New Assignment"),
-          style: ElevatedButton.styleFrom(primary: (_showForm) ? Theme.of(context).disabledColor : Theme.of(context).primaryColor),
+      Expanded(
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _showCompleted = !_showCompleted;
+              });
+            },
+            child: OutlineBox(
+              child: Text((_showCompleted) ? "Completed" : "Uncompleted"),
+            ),
+          ),
         ),
+      ),
+      IconButton(
+        color: Theme.of(context).primaryColor,
+        onPressed: () {
+          setState(() {
+            _showForm = !_showForm;
+          });
+        },
+        icon: Icon((_showForm) ? Icons.undo : Icons.add),
       ),
     ];
     List<Widget> columnWidgets = [
-      //Text('Assignments', style: TextStyle(fontSize: 60)),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: rowWidgets,
-      ),
-      Expanded(
-        child: AssignmentFetcher(),
+      Padding(
+        padding: EdgeInsets.only(left: 10.0, top: 10.0, right: 10.0),
+        child: OutlineBox(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: rowWidgets,
+          ),
+        ),
       )
     ];
     if (_showForm) {
       columnWidgets.insert(1, _currentForm);
       rowWidgets.add(
-        Padding(
-          padding: EdgeInsets.only(right: 10.0, top: 10.0),
-          child: ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _showForm = false;
-                context.read<DataManager>().assignmentsCollection.add(_currentForm.currentState!.getAssignment().toJson());
-                _currentForm = AssignmentForm();
-              });
-            },
-            child: Text("Submit"),
-          ),
+        IconButton(
+          color: Theme.of(context).primaryColor,
+          onPressed: () {
+            setState(() {
+              _showForm = false;
+              context.read<DataManager>().assignmentsCollection.add(_currentForm.currentState!.getAssignment().toJson());
+              _currentForm = AssignmentForm();
+            });
+          },
+          icon: Icon(Icons.check),
         ),
       );
     }
+    DataManager dataManager = context.read<DataManager>();
+    columnWidgets.add(
+      StreamBuilder<QuerySnapshot>(
+        stream: (_showCompleted) ? dataManager.assignmentStream : dataManager.assignmentStreamFiltered,
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return Text('Something went wrong');
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+          } else {
+            _assignments = snapshot.data!.docs.map((DocumentSnapshot document) => Assignment.fromJson(document.data()! as Map<String, dynamic>, document.id)).toList();
+          }
+          return Expanded(
+            child: AssignmentList(_assignments),
+          );
+        },
+      ),
+    );
     return Column(
       children: columnWidgets,
     );
@@ -101,7 +134,7 @@ class _AssignmentFormState extends State<AssignmentForm> {
   }
 
   Assignment getAssignment() {
-    return Assignment(name: _nameController.text.trim(), startDate: _assignmentStartDate, dueDate: _assignmentDueDate);
+    return Assignment(name: _nameController.text.trim(), startDate: _assignmentStartDate, dueDate: _assignmentDueDate, completed: false);
   }
 
   @override
@@ -170,25 +203,6 @@ class _AssignmentFormState extends State<AssignmentForm> {
   }
 }
 
-class AssignmentFetcher extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    DataManager _dataManager = context.read<DataManager>();
-    return StreamBuilder<QuerySnapshot>(
-      stream: _dataManager.assignmentStream,
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Text('Something went wrong');
-        }
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text("Loading");
-        }
-        return AssignmentList(snapshot.data!.docs.map((DocumentSnapshot document) => Assignment.fromJson(document.data()! as Map<String, dynamic>, document.id)).toList());
-      },
-    );
-  }
-}
-
 class AssignmentList extends StatelessWidget {
   final List<Assignment> _assignments;
 
@@ -221,7 +235,7 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
   bool _editing = false;
 
   Future<void> updateData(Map<String, dynamic> data) async {
-    await context.read<DataManager>().assignmentsCollection.doc(widget._assignment.documentID).update(data);
+    await context.read<DataManager>().assignmentsCollection.doc(widget._assignment.documentId).update(data);
   }
 
   @override
@@ -239,28 +253,78 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
                 icon: Icon(Icons.remove),
                 color: Theme.of(context).primaryColor,
                 onPressed: () {
-                  setState(() {
-                    //TODO confirmation?
-                    context.read<DataManager>().assignmentsCollection.doc(widget._assignment.documentID).delete();
-                  });
+                  showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: Text("Delete"),
+                      content: Text("Delete Assignment \"" + widget._assignment.name + "\"?"),
+                      actions: [
+                        MaterialButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text("No"),
+                        ),
+                        MaterialButton(
+                          onPressed: () {
+                            setState(() {
+                              context.read<DataManager>().assignmentsCollection.doc(widget._assignment.documentId).delete();
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text("Yes"),
+                        ),
+                      ],
+                    ),
+                    barrierDismissible: true,
+                  );
                 },
               ),
-              IconButton(
-                icon: Icon(Icons.edit),
-                color: Theme.of(context).primaryColor,
-                onPressed: () {
-                  setState(() {
-                    _editing = true;
-                  });
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.check),
-                color: Theme.of(context).primaryColor,
-                onPressed: () {
-                  print("add completion code here");
-                },
-              ),
+              (widget._assignment.completed)
+                  ? SizedBox(
+                      width: 48.0,
+                      height: 48.0,
+                    )
+                  : IconButton(
+                      icon: Icon(Icons.edit),
+                      color: Theme.of(context).primaryColor,
+                      onPressed: () {
+                        setState(() {
+                          _editing = true;
+                        });
+                      },
+                    ),
+              (widget._assignment.completed)
+                  ? SizedBox(
+                      width: 48.0,
+                      height: 48.0,
+                    )
+                  : IconButton(
+                      icon: Icon(Icons.check),
+                      color: Theme.of(context).primaryColor,
+                      onPressed: () {
+                        Assignment a = widget._assignment;
+                        a.completed = true;
+                        context.read<DataManager>().getUserData().then((UserData userData) {
+                          Random rng = new Random();
+                          int assignmentLength = a.dueDate.difference(a.startDate).inHours;
+                          double multiplier = (1+0.1*(a.dueDate.difference(DateTime.now()).inHours / 24));
+
+                          //hearts: (5 - 15) + 1 per 6 hours assignmentLength * extra 10% per day early
+                          double hearts = (5*rng.nextDouble()+10) + (assignmentLength / 6.0);
+                          hearts = hearts * multiplier;
+                          userData.hearts += hearts.round();
+                          //(1-3) + 1 per day assignmentLength
+                          double gems = (3*rng.nextDouble()+1) + (assignmentLength / 24.0);
+                          gems = gems * multiplier;
+                          userData.gems += gems.round();
+
+                          userData.updateDocument(context).then((_) {
+                            a.updateDocument(context);
+                          });
+                        });
+                      },
+                    ),
             ],
           ),
         ],
@@ -320,6 +384,7 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
       columnWidgets.add(currentForm);
     }
     return OutlineBox(
+      borderColor: (widget._assignment.completed) ? Colors.lightGreen : null,
       child: Column(
         children: columnWidgets,
       ),

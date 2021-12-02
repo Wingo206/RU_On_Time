@@ -74,9 +74,11 @@ class _PetDisplayState extends State<PetDisplay> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: widget.size,
-      painter: _PetPainter(animation.value, widget.pet),
+    return ClipRect(
+      child: CustomPaint(
+        size: widget.size,
+        painter: _PetPainter(animation.value, widget.pet),
+      ),
     );
   }
 

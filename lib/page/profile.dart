@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 import 'package:ru_on_time/authentication_service.dart';
-import 'package:ru_on_time/page/pets.dart';
 
 import '../data.dart';
 import '../util_widgets.dart';

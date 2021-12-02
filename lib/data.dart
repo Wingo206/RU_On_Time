@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
@@ -118,15 +117,15 @@ class Accessory {
 
   Accessory.fromJson(Map<String, Object?> json, String id)
       : this(
-    type: json['type']! as String,
-    petId: json['petId']! as String,
-    date: DateTime.parse(json['date']! as String),
-    xPos: (json['x pos']! as num).toDouble(),
-    yPos: (json['y pos']! as num).toDouble(),
-    angle: (json['angle']! as num).toDouble(),
-    size: (json['size']! as num).toDouble(),
-    documentId: id,
-  );
+          type: json['type']! as String,
+          petId: json['petId']! as String,
+          date: DateTime.parse(json['date']! as String),
+          xPos: (json['x pos']! as num).toDouble(),
+          yPos: (json['y pos']! as num).toDouble(),
+          angle: (json['angle']! as num).toDouble(),
+          size: (json['size']! as num).toDouble(),
+          documentId: id,
+        );
 
   Map<String, Object?> toJson() {
     return {
@@ -145,32 +144,38 @@ class Accessory {
   }
 }
 
-
 class Assignment {
-  final String name;
-  final DateTime dueDate;
-  final DateTime startDate;
-  String? documentID;
+  String name;
+  DateTime dueDate;
+  DateTime startDate;
+  bool completed;
+  String? documentId;
 
-  Assignment({required this.name, required this.dueDate, required this.startDate, this.documentID});
+  Assignment({required this.name, required this.dueDate, required this.startDate, required this.completed, this.documentId});
 
   Assignment.fromJson(Map<String, Object?> json, String id)
       : this(
-    name: json['name']! as String,
-    dueDate: DateTime.parse(json['due date']! as String),
-    startDate: DateTime.parse(json['start date']! as String),
-    documentID: id,
-  );
+          name: json['name']! as String,
+          dueDate: DateTime.parse(json['due date']! as String),
+          startDate: DateTime.parse(json['start date']! as String),
+          completed: json['completed']! as bool,
+          documentId: id,
+        );
 
   Map<String, Object?> toJson() {
     return {
       'name': name,
       'due date': dueDate.toIso8601String(),
       'start date': startDate.toIso8601String(),
+      'completed': completed,
     };
   }
-}
 
+  Future<void> updateDocument(BuildContext context) async {
+    context.read<DataManager>().assignmentsCollection.doc(documentId).update(toJson());
+  }
+
+}
 
 class UserData {
   String name;
@@ -191,13 +196,13 @@ class UserData {
 
   UserData.fromJson(Map<String, Object?> json, String id)
       : this(
-    name: json['name']! as String,
-    email: json['email']! as String,
-    hearts: json['hearts']! as int,
-    gems: json['gems']! as int,
-    xp: json['xp']! as int,
-    documentID: id,
-  );
+          name: json['name']! as String,
+          email: json['email']! as String,
+          hearts: json['hearts']! as int,
+          gems: json['gems']! as int,
+          xp: json['xp']! as int,
+          documentID: id,
+        );
 
   Map<String, Object?> toJson() {
     return {

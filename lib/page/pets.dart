@@ -7,17 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:ru_on_time/data_manager.dart';
 import 'package:provider/src/provider.dart';
 import 'package:ru_on_time/page/pet_render.dart';
-import 'package:ru_on_time/page/profile.dart';
 
 import '../data.dart';
 import '../util_widgets.dart';
 
-int pettingCost = 1;
-double pettingAmount = 20.0;
-int feedingCost = 2;
-double feedingAmount = 20.0;
-int cleaningCost = 3;
-double cleaningAmount = 20.0;
+int pettingCost = 3;
+double pettingAmount = 5.0;
+int feedingCost = 5;
+double feedingAmount = 5.0;
+int cleaningCost = 15;
+double cleaningAmount = 5.0;
 
 class PetsPage extends StatelessWidget {
   List<Pet> _pets = [];
@@ -92,8 +91,6 @@ class PetList extends StatelessWidget {
         itemBuilder: (BuildContext context, int index) {
           return PetWidget(_pets[index]);
         },
-        //physics: BouncingScrollPhysics(),
-        //children: _pets.map((Pet p) => PetWidget(p)).toList(),
       ),
     );
   }
