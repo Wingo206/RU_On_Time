@@ -19,12 +19,15 @@ class AssignmentsPage extends StatefulWidget {
 
 class _AssignmentsPageState extends State<AssignmentsPage> {
   bool _showForm = false;
-  bool _showCompleted = false;
+  int _showIndex = 0;
+  final List<String> showOptions = ["All Assignments", "Incomplete", "Completed"];
   AssignmentForm _currentForm = AssignmentForm();
   List<Assignment> _assignments = [];
 
   @override
   Widget build(BuildContext context) {
+    DataManager dataManager = context.read<DataManager>();
+    List<Stream<QuerySnapshot>> streams = [dataManager.assignmentStreamAll, dataManager.assignmentStreamIncomplete, dataManager.assignmentStreamCompleted];
     List<Widget> rowWidgets = [
       Expanded(
         child: Align(
@@ -32,11 +35,12 @@ class _AssignmentsPageState extends State<AssignmentsPage> {
           child: GestureDetector(
             onTap: () {
               setState(() {
-                _showCompleted = !_showCompleted;
+                _showIndex++;
+                _showIndex%=3;
               });
             },
             child: OutlineBox(
-              child: Text((_showCompleted) ? "Completed" : "Uncompleted"),
+              child: Text(showOptions[_showIndex]),
             ),
           ),
         ),
@@ -78,10 +82,9 @@ class _AssignmentsPageState extends State<AssignmentsPage> {
         ),
       );
     }
-    DataManager dataManager = context.read<DataManager>();
     columnWidgets.add(
       StreamBuilder<QuerySnapshot>(
-        stream: (_showCompleted) ? dataManager.assignmentStream : dataManager.assignmentStreamFiltered,
+        stream: streams[_showIndex],
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return Text('Something went wrong');

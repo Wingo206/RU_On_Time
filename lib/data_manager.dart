@@ -13,8 +13,9 @@ class DataManager {
   DocumentReference get userRef => usersCollection.doc(uid);
 
   CollectionReference get assignmentsCollection => usersCollection.doc(uid).collection('assignments');
-  Stream<QuerySnapshot> get assignmentStream => assignmentsCollection.orderBy('due date', descending: false).snapshots();
-  Stream<QuerySnapshot> get assignmentStreamFiltered => assignmentsCollection.where('completed', isEqualTo: false).orderBy('due date', descending: false).snapshots();
+  Stream<QuerySnapshot> get assignmentStreamAll => assignmentsCollection.orderBy('due date', descending: false).snapshots();
+  Stream<QuerySnapshot> get assignmentStreamIncomplete => assignmentsCollection.where('completed', isEqualTo: false).orderBy('due date', descending: false).snapshots();
+  Stream<QuerySnapshot> get assignmentStreamCompleted => assignmentsCollection.where('completed', isEqualTo: true).orderBy('due date', descending: false).snapshots();
 
   CollectionReference get petsCollection => usersCollection.doc(uid).collection('pets');
   Stream<QuerySnapshot> get petStream => petsCollection.orderBy('start date', descending: false).snapshots();

@@ -57,7 +57,7 @@ class _CalendarState extends State<Calendar> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: context.read<DataManager>().assignmentStreamFiltered,
+      stream: context.read<DataManager>().assignmentStreamIncomplete,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         List<Widget> widgetsList = [
           SizedBox(

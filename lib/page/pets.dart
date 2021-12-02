@@ -15,7 +15,7 @@ int pettingCost = 3;
 double pettingAmount = 5.0;
 int feedingCost = 5;
 double feedingAmount = 5.0;
-int cleaningCost = 15;
+int cleaningCost = 7;
 double cleaningAmount = 5.0;
 
 class PetsPage extends StatelessWidget {
