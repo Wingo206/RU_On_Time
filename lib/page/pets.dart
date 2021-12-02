@@ -9,6 +9,8 @@ import 'package:provider/src/provider.dart';
 import 'package:ru_on_time/page/pet_render.dart';
 import 'package:ru_on_time/page/profile.dart';
 
+import '../UtilWidgets.dart';
+
 int pettingCost = 1;
 double pettingAmount = 20.0;
 int feedingCost = 2;
@@ -77,17 +79,10 @@ class PetList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(bottom: 10.0),
-          child: ListView(
-            physics: BouncingScrollPhysics(),
-            children: _pets.map((Pet p) => PetWidget(p)).toList(),
-          ),
+      child: OutlineBox(
+        child: ListView(
+          physics: BouncingScrollPhysics(),
+          children: _pets.map((Pet p) => PetWidget(p)).toList(),
         ),
       ),
     );
@@ -258,32 +253,28 @@ class _PetWidgetState extends State<PetWidget> {
       List<Widget> accessoryWidgets = [SizedBox(width: 10.0)];
       for (int i = 0; i < widget.pet.accessories.length; i++) {
         accessoryWidgets.add(
-          Padding(
-            padding: EdgeInsets.only(top: 10.0, right: 10.0, bottom: 10.0),
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (_currentAccessory != null) {
-                    _currentAccessory!.updateDocument(context);
-                  }
-                  if (_selectedIndex == i) {
-                    _selectedIndex = -1;
-                  } else {
-                    _selectedIndex = i;
-                  }
-                });
-              },
-              child: AccessoryWidget(widget.pet.accessories[i], (_selectedIndex == i) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor),
-            ),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                if (_currentAccessory != null) {
+                  _currentAccessory!.updateDocument(context);
+                }
+                if (_selectedIndex == i) {
+                  _selectedIndex = -1;
+                } else {
+                  _selectedIndex = i;
+                }
+              });
+            },
+            child: AccessoryWidget(widget.pet.accessories[i], (_selectedIndex == i) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor),
           ),
         );
+        accessoryWidgets.add(SizedBox(width: 10.0));
       }
       columnWidgets.add(SizedBox(height: 10.0));
       columnWidgets.add(
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-          ),
+        OutlineBox(
+          padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
           child: SizedBox(
             height: 200,
             child: ListView(
@@ -297,18 +288,11 @@ class _PetWidgetState extends State<PetWidget> {
     }
 
     return Padding(
-      padding: EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(10.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: columnWidgets,
-            ),
+      padding: EdgeInsets.only(bottom: 10.0),
+      child: OutlineBox(
+        child: SingleChildScrollView(
+          child: Column(
+            children: columnWidgets,
           ),
         ),
       ),
@@ -317,7 +301,7 @@ class _PetWidgetState extends State<PetWidget> {
 
   List<Widget> getEditMenuWidgets(BuildContext context) {
     return [
-      Text("Editing: " + ImageData.displayNameMap[_currentAccessory!.type]!),
+      Text("Editing: " + Constants.displayNameMap[_currentAccessory!.type]!),
       Slider(
         value: _currentAccessory!.xPos,
         min: -256,

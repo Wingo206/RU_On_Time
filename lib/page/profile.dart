@@ -4,6 +4,7 @@ import 'package:provider/src/provider.dart';
 import 'package:ru_on_time/authentication_service.dart';
 import 'package:ru_on_time/page/pets.dart';
 
+import '../UtilWidgets.dart';
 import '../data_manager.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -212,68 +213,4 @@ Widget buildStatBar(String name, double value, double maxValue) {
       ],
     ),
   );
-}
-
-IconData heartsIcon = Icons.favorite_border;
-IconData gemsIcon = Icons.sports_soccer_rounded;
-class CurrencyDisplay extends StatefulWidget {
-
-  @override
-  _CurrencyDisplayState createState() => _CurrencyDisplayState();
-}
-
-class _CurrencyDisplayState extends State<CurrencyDisplay> {
-  int hearts = 0;
-  int gems = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(context.read<DataManager>().uid).snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Text('Something went wrong');
-        }
-        if (snapshot.hasData && !snapshot.data!.exists) {
-          return Text("Document does not exist");
-        }
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return buildDisplay(context);
-        }
-        Map<String, dynamic> data = snapshot.data!.data()! as Map<String, dynamic>;
-        hearts = data['hearts'] as int;
-        gems = data['gems'] as int;
-        return buildDisplay(context);
-      },
-    );
-  }
-
-  Widget buildDisplay(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Column(
-              children: [
-                Icon(heartsIcon, size: 30.0),
-                Text("Hearts: " + hearts.toString()),
-              ],
-            ),
-            Column(
-              children: [
-                Icon(gemsIcon, size: 30.0),
-                Text("Gems: " + gems.toString()),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

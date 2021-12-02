@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 import 'package:intl/intl.dart';
 
+import '../UtilWidgets.dart';
 import '../data_manager.dart';
 
 DateFormat _dateFormat = DateFormat('MMM d, y,').add_jm();
@@ -106,46 +107,40 @@ class _AssignmentFormState extends State<AssignmentForm> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(10),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(5),
-          child: Column(
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: "Assignment Name",
+      child: OutlineBox(
+        child: Column(
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: "Assignment Name",
+              ),
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                  child: ElevatedButton(
+                    child: Text("Start Date"),
+                    onPressed: () => _selectDateAndTime(context, _assignmentStartDate, DateTime(2015)).then((value) => setState(() => _assignmentStartDate = value)),
+                  ),
                 ),
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(left: 10.0, right: 10.0),
-                    child: ElevatedButton(
-                      child: Text("Start Date"),
-                      onPressed: () => _selectDateAndTime(context, _assignmentStartDate, DateTime(2015)).then((value) => setState(() => _assignmentStartDate = value)),
-                    ),
+                Text(_dateFormat.format(_assignmentStartDate)),
+              ],
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                  child: ElevatedButton(
+                    child: Text("due Date"),
+                    onPressed: () => _selectDateAndTime(context, _assignmentDueDate, _assignmentStartDate).then((value) => setState(() => _assignmentDueDate = value)),
                   ),
-                  Text(_dateFormat.format(_assignmentStartDate)),
-                ],
-              ),
-              Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(left: 10.0, right: 10.0),
-                    child: ElevatedButton(
-                      child: Text("due Date"),
-                      onPressed: () => _selectDateAndTime(context, _assignmentDueDate, _assignmentStartDate).then((value) => setState(() => _assignmentDueDate = value)),
-                    ),
-                  ),
-                  Text(_dateFormat.format(_assignmentDueDate)),
-                ],
-              ),
-            ],
-          ),
+                ),
+                Text(_dateFormat.format(_assignmentDueDate)),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -202,13 +197,14 @@ class AssignmentList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(10),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-        ),
-        child: ListView(
+      child: OutlineBox(
+        child: ListView.separated(
           physics: BouncingScrollPhysics(),
-          children: _assignments.map((e) => AssignmentWidget(e)).toList(),
+          itemCount: _assignments.length,
+          itemBuilder: (BuildContext context, int index) {
+            return AssignmentWidget(_assignments[index]);
+          },
+          separatorBuilder: (BuildContext context, int index) => SizedBox(height: 10.0),
         ),
       ),
     );
@@ -327,19 +323,9 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
       );
       columnWidgets.add(currentForm);
     }
-    return Padding(
-      padding: EdgeInsets.all(5.0),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(10.0),
-          child: Column(
-            children: columnWidgets,
-          ),
-        ),
+    return OutlineBox(
+      child: Column(
+        children: columnWidgets,
       ),
     );
   }

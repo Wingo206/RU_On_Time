@@ -10,6 +10,8 @@ import 'package:ru_on_time/data_manager.dart';
 import 'package:provider/src/provider.dart';
 import 'package:intl/intl.dart';
 
+import '../UtilWidgets.dart';
+
 class PetDisplay extends StatefulWidget {
   final Size size;
   final Pet pet;
@@ -25,7 +27,7 @@ void drawImage(Canvas canvas, Size size, String imageName, double cx, double cy,
   Offset c = convertOffset(Offset(256.0 + cx, 256.0 + cy), size);
   rotate(canvas, c, angle);
   canvas.drawImageRect(
-      ImageData.imageMap[imageName]!,
+      Constants.imageMap[imageName]!,
       Rect.fromPoints(Offset(0, 0), Offset(512, 512)),
       Rect.fromPoints(
         Offset(c.dx - scaledSize / 2, c.dy - scaledSize / 2),
@@ -119,30 +121,6 @@ class _PetPainter extends CustomPainter {
   }
 }
 
-/*
-class AccessoryList extends StatelessWidget {
-  final List<Accessory> _accessories;
-
-  AccessoryList(this._accessories);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(10),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-        ),
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          physics: BouncingScrollPhysics(),
-          children: _accessories.map((e) => AccessoryWidget(e)).toList(),
-        ),
-      ),
-    );
-  }
-}
-*/
 class AccessoryWidget extends StatelessWidget {
   final Accessory accessory;
   final Color color;
@@ -151,22 +129,15 @@ class AccessoryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(width: 2.0, color: color),
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            AccessoryDisplay(size: Size(100, 100), accessory: accessory),
-            SizedBox(height: 5.0),
-            Text(ImageData.displayNameMap[accessory.type]!),
-            SizedBox(height: 5.0),
-            Text(DateFormat('MMM d, y').format(accessory.date)),
-          ],
-        ),
+    return OutlineBox(
+      child: Column(
+        children: [
+          AccessoryDisplay(size: Size(100, 100), accessory: accessory),
+          SizedBox(height: 5.0),
+          Text(Constants.displayNameMap[accessory.type]!),
+          SizedBox(height: 5.0),
+          Text(DateFormat('MMM d, y').format(accessory.date)),
+        ],
       ),
     );
   }
@@ -219,7 +190,11 @@ Future<ui.Image> loadImage(String path) async {
   return image;
 }
 
-class ImageData {
+class Constants {
+  static final List<String> pets = ["cat", "dog", "dragon", "penguin"];
+  static final List<int> petPrices = [50, 50, 80, 60];
+  static final List<String> accessories = ["bandana", "bowtie", "collar", "flower_crown", "santa_hat", "top_hat"];
+  static final List<int> accessoryPrices = [10, 10, 10, 20, 20, 20];
   static final Map<String, ui.Image> imageMap = new Map<String, ui.Image>();
   static final Map<String, String> displayNameMap = new Map<String, String>();
 
@@ -273,6 +248,7 @@ class Pet {
         accessories.add(Accessory.fromJson(document.data()! as Map<String, dynamic>, id));
       });
     }
+    print(accessories.map((Accessory a) => a.documentId).toList());
     return Pet(
       type: json['type']! as String,
       name: json['name']! as String,

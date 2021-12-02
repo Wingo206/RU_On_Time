@@ -88,7 +88,7 @@ class AuthenticationWrapper extends StatelessWidget {
               in the AssignmentsPage's build method.*/
               create: (_) => snapshot.data!,
               child: FutureBuilder<void>(
-                future: ImageData.loadImageData(),
+                future: Constants.loadImageData(),
                 builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
                   if (snapshot.hasError) {
                     return Text("Something went wrong");
