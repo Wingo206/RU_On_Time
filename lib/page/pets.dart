@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:ru_on_time/data_manager.dart';
 import 'package:provider/src/provider.dart';
 import 'package:ru_on_time/page/pet_render.dart';
+import 'package:ru_on_time/page/profile.dart';
 
 int pettingCost = 1;
 double pettingAmount = 20.0;
@@ -87,67 +88,6 @@ class PetList extends StatelessWidget {
             physics: BouncingScrollPhysics(),
             children: _pets.map((Pet p) => PetWidget(p)).toList(),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class CurrencyDisplay extends StatefulWidget {
-  @override
-  _CurrencyDisplayState createState() => _CurrencyDisplayState();
-}
-
-class _CurrencyDisplayState extends State<CurrencyDisplay> {
-  int coins = 0;
-  int gems = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(context.read<DataManager>().uid).snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Text('Something went wrong');
-        }
-        if (snapshot.hasData && !snapshot.data!.exists) {
-          return Text("Document does not exist");
-        }
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return buildDisplay(context);
-        }
-        Map<String, dynamic> data = snapshot.data!.data()! as Map<String, dynamic>;
-        coins = data['coins'] as int;
-        gems = data['gems'] as int;
-        return buildDisplay(context);
-      },
-    );
-  }
-
-  Widget buildDisplay(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Column(
-              children: [
-                Icon(Icons.attach_money, size: 30.0),
-                Text("Coins: " + coins.toString()),
-              ],
-            ),
-            Column(
-              children: [
-                Icon(Icons.sports_soccer_rounded, size: 30.0),
-                Text("Gems: " + gems.toString()),
-              ],
-            ),
-          ],
         ),
       ),
     );
@@ -238,8 +178,8 @@ class _PetWidgetState extends State<PetWidget> {
                   widget.pet.love += pettingAmount;
                   widget.pet.love = min(widget.pet.love, 100.0);
                   context.read<DataManager>().getUserData().then((UserData userData) {
-                    if (userData.coins > pettingCost) {
-                      userData.coins -= pettingCost;
+                    if (userData.hearts > pettingCost) {
+                      userData.hearts -= pettingCost;
                       widget.pet.updateDocument(context);
                       userData.updateDocument(context);
                     } else {
@@ -248,7 +188,12 @@ class _PetWidgetState extends State<PetWidget> {
                   });
                 }
               },
-              child: Text("Pet (\$1)"),
+              child: Row(
+                children: [
+                  Text("Pet " + pettingCost.toString()),
+                  Icon(heartsIcon, size: 20.0),
+                ],
+              ),
             ),
             SizedBox(width: 5.0),
             ElevatedButton(
@@ -257,8 +202,8 @@ class _PetWidgetState extends State<PetWidget> {
                   widget.pet.food += feedingAmount;
                   widget.pet.food = min(widget.pet.food, 100.0);
                   context.read<DataManager>().getUserData().then((UserData userData) {
-                    if (userData.coins > feedingCost) {
-                      userData.coins -= feedingCost;
+                    if (userData.hearts > feedingCost) {
+                      userData.hearts -= feedingCost;
                       widget.pet.updateDocument(context);
                       userData.updateDocument(context);
                     } else {
@@ -267,7 +212,12 @@ class _PetWidgetState extends State<PetWidget> {
                   });
                 }
               },
-              child: Text("Feed (\$2)"),
+              child: Row(
+                children: [
+                  Text("Feed " + feedingCost.toString()),
+                  Icon(heartsIcon, size: 20.0),
+                ],
+              ),
             ),
             SizedBox(width: 5.0),
             ElevatedButton(
@@ -276,8 +226,8 @@ class _PetWidgetState extends State<PetWidget> {
                   widget.pet.cleanliness += cleaningAmount;
                   widget.pet.cleanliness = min(widget.pet.cleanliness, 100.0);
                   context.read<DataManager>().getUserData().then((UserData userData) {
-                    if (userData.coins > cleaningCost) {
-                      userData.coins -= cleaningCost;
+                    if (userData.hearts > cleaningCost) {
+                      userData.hearts -= cleaningCost;
                       widget.pet.updateDocument(context);
                       userData.updateDocument(context);
                     } else {
@@ -286,7 +236,12 @@ class _PetWidgetState extends State<PetWidget> {
                   });
                 }
               },
-              child: Text("Clean (\$3)"),
+              child: Row(
+                children: [
+                  Text("Clean " + cleaningCost.toString()),
+                  Icon(heartsIcon, size: 20.0),
+                ],
+              ),
             ),
           ],
         ),

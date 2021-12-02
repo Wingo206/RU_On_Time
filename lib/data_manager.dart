@@ -36,7 +36,7 @@ class DataManager {
           UserData(
             name: "Default Username",
             email: _firebaseAuth.currentUser!.email!,
-            coins: 0,
+            hearts: 0,
             gems: 0,
             xp: 0,
           ).toJson(),
@@ -58,7 +58,7 @@ class DataManager {
 class UserData {
   String name;
   String email;
-  int coins;
+  int hearts;
   int gems;
   int xp;
   String? documentID;
@@ -66,7 +66,7 @@ class UserData {
   UserData({
     required this.name,
     required this.email,
-    required this.coins,
+    required this.hearts,
     required this.gems,
     required this.xp,
     this.documentID,
@@ -76,7 +76,7 @@ class UserData {
       : this(
           name: json['name']! as String,
           email: json['email']! as String,
-          coins: json['coins']! as int,
+          hearts: json['hearts']! as int,
           gems: json['gems']! as int,
           xp: json['xp']! as int,
           documentID: id,
@@ -86,7 +86,7 @@ class UserData {
     return {
       'name': name,
       'email': email,
-      'coins': coins,
+      'hearts': hearts,
       'gems': gems,
       'xp': xp,
     };
