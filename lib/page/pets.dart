@@ -174,11 +174,11 @@ class _PetWidgetState extends State<PetWidget> {
           children: [
             ElevatedButton(
               onPressed: () {
-                if (widget.pet.love < 100.0) {
+                if (widget.pet.love.round() < 100.0) {
                   widget.pet.love += pettingAmount;
                   widget.pet.love = min(widget.pet.love, 100.0);
                   context.read<DataManager>().getUserData().then((UserData userData) {
-                    if (userData.hearts > pettingCost) {
+                    if (userData.hearts >= pettingCost) {
                       userData.hearts -= pettingCost;
                       widget.pet.updateDocument(context);
                       userData.updateDocument(context);
@@ -198,11 +198,11 @@ class _PetWidgetState extends State<PetWidget> {
             SizedBox(width: 5.0),
             ElevatedButton(
               onPressed: () {
-                if (widget.pet.food < 100.0) {
+                if (widget.pet.food.round() < 100.0) {
                   widget.pet.food += feedingAmount;
                   widget.pet.food = min(widget.pet.food, 100.0);
                   context.read<DataManager>().getUserData().then((UserData userData) {
-                    if (userData.hearts > feedingCost) {
+                    if (userData.hearts >= feedingCost) {
                       userData.hearts -= feedingCost;
                       widget.pet.updateDocument(context);
                       userData.updateDocument(context);
@@ -222,11 +222,11 @@ class _PetWidgetState extends State<PetWidget> {
             SizedBox(width: 5.0),
             ElevatedButton(
               onPressed: () {
-                if (widget.pet.cleanliness < 100.0) {
+                if (widget.pet.cleanliness.round() < 100.0) {
                   widget.pet.cleanliness += cleaningAmount;
                   widget.pet.cleanliness = min(widget.pet.cleanliness, 100.0);
                   context.read<DataManager>().getUserData().then((UserData userData) {
-                    if (userData.hearts > cleaningCost) {
+                    if (userData.hearts >= cleaningCost) {
                       userData.hearts -= cleaningCost;
                       widget.pet.updateDocument(context);
                       userData.updateDocument(context);
@@ -378,7 +378,7 @@ class _PetWidgetState extends State<PetWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(name),
-              Text(value.toStringAsFixed(2) + " / " + maxValue.toStringAsFixed(0)),
+              Text(value.toStringAsFixed(0) + " / " + maxValue.toStringAsFixed(0)),
             ],
           ),
           SizedBox(height: 5.0),
