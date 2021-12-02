@@ -5,6 +5,7 @@ import 'package:ru_on_time/page/pet_render.dart';
 import 'package:provider/src/provider.dart';
 import 'package:ru_on_time/page/pets.dart';
 
+import '../data.dart';
 import '../util_widgets.dart';
 
 class ShopPage extends StatelessWidget {

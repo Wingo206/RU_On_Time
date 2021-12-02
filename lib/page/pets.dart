@@ -9,6 +9,7 @@ import 'package:provider/src/provider.dart';
 import 'package:ru_on_time/page/pet_render.dart';
 import 'package:ru_on_time/page/profile.dart';
 
+import '../data.dart';
 import '../util_widgets.dart';
 
 int pettingCost = 1;

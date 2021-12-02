@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 import 'package:intl/intl.dart';
 
+import '../data.dart';
 import '../util_widgets.dart';
 import '../data_manager.dart';
 
@@ -323,30 +324,5 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
         children: columnWidgets,
       ),
     );
-  }
-}
-
-class Assignment {
-  final String name;
-  final DateTime dueDate;
-  final DateTime startDate;
-  String? documentID;
-
-  Assignment({required this.name, required this.dueDate, required this.startDate, this.documentID});
-
-  Assignment.fromJson(Map<String, Object?> json, String id)
-      : this(
-          name: json['name']! as String,
-          dueDate: DateTime.parse(json['due date']! as String),
-          startDate: DateTime.parse(json['start date']! as String),
-          documentID: id,
-        );
-
-  Map<String, Object?> toJson() {
-    return {
-      'name': name,
-      'due date': dueDate.toIso8601String(),
-      'start date': startDate.toIso8601String(),
-    };
   }
 }

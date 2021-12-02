@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 
+import 'data.dart';
+
 class DataManager {
   String uid;
 
@@ -52,47 +54,5 @@ class DataManager {
         return UserData.fromJson(snapshot.data()! as Map<String, dynamic>, uid);
       },
     );
-  }
-}
-
-class UserData {
-  String name;
-  String email;
-  int hearts;
-  int gems;
-  int xp;
-  String? documentID;
-
-  UserData({
-    required this.name,
-    required this.email,
-    required this.hearts,
-    required this.gems,
-    required this.xp,
-    this.documentID,
-  });
-
-  UserData.fromJson(Map<String, Object?> json, String id)
-      : this(
-          name: json['name']! as String,
-          email: json['email']! as String,
-          hearts: json['hearts']! as int,
-          gems: json['gems']! as int,
-          xp: json['xp']! as int,
-          documentID: id,
-        );
-
-  Map<String, Object?> toJson() {
-    return {
-      'name': name,
-      'email': email,
-      'hearts': hearts,
-      'gems': gems,
-      'xp': xp,
-    };
-  }
-
-  Future<void> updateDocument(BuildContext context) async {
-    context.read<DataManager>().usersCollection.doc(documentID).update(toJson());
   }
 }
