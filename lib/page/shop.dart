@@ -17,38 +17,30 @@ class ShopPage extends StatelessWidget {
           children: [
             CurrencyDisplay(),
             SizedBox(height: 10.0),
-            Text("Accessory Shop"),
-            SizedBox(
-              height: 240,
-              child: OutlineBox(
-                padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-                child: PaddingListView(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: Constants.pets.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return PetShopWidget(Constants.pets[index], Constants.petPrices[index]);
-                  },
-                ),
-              ),
-            ),
-            SizedBox(height: 10.0),
-            Text("Accessory Shop"),
-            SizedBox(
-              height: 240,
-              child: OutlineBox(
-                padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-                child: PaddingListView(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: Constants.accessories.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return AccessoryShopWidget(Constants.accessories[index], Constants.accessoryPrices[index]);
-                  },
-                ),
-              ),
-            ),
-            SizedBox(height: 10.0),
             Text("Your Accessories"),
             AccessoryMenu(),
+            SizedBox(height: 10.0),
+            Text("Pet Shop"),
+            PaddingListView(
+              scrollBar: true,
+              childCrossAxisSize: 180,
+              scrollDirection: Axis.horizontal,
+              itemCount: Constants.pets.length,
+              itemBuilder: (BuildContext context, int index) {
+                return PetShopWidget(Constants.pets[index], Constants.petPrices[index]);
+              },
+            ),
+            SizedBox(height: 10.0),
+            Text("Accessory Shop"),
+            PaddingListView(
+              scrollBar: true,
+              childCrossAxisSize: 180,
+              scrollDirection: Axis.horizontal,
+              itemCount: Constants.accessories.length,
+              itemBuilder: (BuildContext context, int index) {
+                return AccessoryShopWidget(Constants.accessories[index], Constants.accessoryPrices[index]);
+              },
+            ),
           ],
         ),
       ),
@@ -80,7 +72,7 @@ class PetShopWidget extends StatelessWidget {
           ElevatedButton(
             child: Row(
               children: [
-                Text("Adopt: " + _cost.toString()),
+                Text("Buy: " + _cost.toString()),
                 Icon(gemsIcon, size: 20.0),
               ],
             ),
@@ -205,28 +197,27 @@ class _AccessoryMenuState extends State<AccessoryMenu> {
 
     if (_selectedIndex == -1) {
       columnWidgets.add(
-        SizedBox(
-          height: AccessoryWidget.height + 20 + 10, //20 for padding, 10 for scrollbar
-          child: PaddingListView(
-            scrollDirection: Axis.horizontal,
-            itemCount: _accessories.length,
-            itemBuilder: (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (_selectedIndex == index) {
-                      _selectedIndex = -1;
-                    } else {
-                      _selectedIndex = index;
-                    }
-                  });
-                },
-                child: AccessoryWidget(
-                  accessory: _accessories[index],
-                ),
-              );
-            },
-          ),
+        PaddingListView(
+          scrollBar: true,
+          childCrossAxisSize: AccessoryWidget.height,
+          scrollDirection: Axis.horizontal,
+          itemCount: _accessories.length,
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (_selectedIndex == index) {
+                    _selectedIndex = -1;
+                  } else {
+                    _selectedIndex = index;
+                  }
+                });
+              },
+              child: AccessoryWidget(
+                accessory: _accessories[index],
+              ),
+            );
+          },
         ),
       );
     } else {
@@ -234,40 +225,39 @@ class _AccessoryMenuState extends State<AccessoryMenu> {
         columnWidgets.add(CircularProgressIndicator());
       } else {
         columnWidgets.add(
-          SizedBox(
-            height: PetWidgetMini.height + 20 + 10,
-            child: PaddingListView(
-              scrollDirection: Axis.horizontal,
-              itemCount: _pets.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      Accessory a = _accessories[_selectedIndex];
-                      if (a.petId != "") {
-                        Pet old = getPetWithId(_pets, a.petId)!;
-                        old.accessories.remove(getAccessoryWithId(old.accessories, a.documentId!));
-                        old.updateDocument(context);
-                      }
-                      Pet selected = _pets[index];
-                      a.petId = selected.documentId!;
-                      selected.accessories.add(a);
-                      a.updateDocument(context).then((_) {
-                        selected.updateDocument(context).then((_) {
-                          setState(() {
-                            _selectedIndex = -1;
-                          });
+          PaddingListView(
+            scrollBar: true,
+            childCrossAxisSize: PetWidgetMini.height,
+            scrollDirection: Axis.horizontal,
+            itemCount: _pets.length,
+            itemBuilder: (BuildContext context, int index) {
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    Accessory a = _accessories[_selectedIndex];
+                    if (a.petId != "") {
+                      Pet old = getPetWithId(_pets, a.petId)!;
+                      old.accessories.remove(getAccessoryWithId(old.accessories, a.documentId!));
+                      old.updateDocument(context);
+                    }
+                    Pet selected = _pets[index];
+                    a.petId = selected.documentId!;
+                    selected.accessories.add(a);
+                    a.updateDocument(context).then((_) {
+                      selected.updateDocument(context).then((_) {
+                        setState(() {
+                          _selectedIndex = -1;
                         });
                       });
                     });
-                  },
-                  child: PetWidgetMini(
-                    pet: _pets[index],
-                    color: (_pets[index].documentId == _accessories[_selectedIndex].petId) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor,
-                  ),
-                );
-              },
-            ),
+                  });
+                },
+                child: PetWidgetMini(
+                  pet: _pets[index],
+                  color: (_pets[index].documentId == _accessories[_selectedIndex].petId) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor,
+                ),
+              );
+            },
           ),
         );
       }
@@ -283,11 +273,8 @@ class _AccessoryMenuState extends State<AccessoryMenu> {
       );
     }
 
-    return OutlineBox(
-      padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-      child: Column(
-        children: columnWidgets,
-      ),
+    return Column(
+      children: columnWidgets,
     );
   }
 
@@ -308,5 +295,4 @@ class _AccessoryMenuState extends State<AccessoryMenu> {
     }
     return null;
   }
-
 }

@@ -20,6 +20,7 @@ double cleaningAmount = 20.0;
 
 class PetsPage extends StatelessWidget {
   List<Pet> _pets = [];
+
   @override
   Widget build(BuildContext context) {
     DataManager dataManager = context.read<DataManager>();
@@ -85,11 +86,13 @@ class PetList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: OutlineBox(
-        child: ListView(
-          physics: BouncingScrollPhysics(),
-          children: _pets.map((Pet p) => PetWidget(p)).toList(),
-        ),
+      child: PaddingListView(
+        itemCount: _pets.length,
+        itemBuilder: (BuildContext context, int index) {
+          return PetWidget(_pets[index]);
+        },
+        //physics: BouncingScrollPhysics(),
+        //children: _pets.map((Pet p) => PetWidget(p)).toList(),
       ),
     );
   }
@@ -256,39 +259,31 @@ class _PetWidgetState extends State<PetWidget> {
     }
 
     if (widget.pet.accessories.length > 0) {
-      List<Widget> accessoryWidgets = [SizedBox(width: 10.0)];
-      for (int i = 0; i < widget.pet.accessories.length; i++) {
-        accessoryWidgets.add(
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                if (_currentAccessory != null) {
-                  _currentAccessory!.updateDocument(context);
-                }
-                if (_selectedIndex == i) {
-                  _selectedIndex = -1;
-                } else {
-                  _selectedIndex = i;
-                }
-              });
-            },
-            child: AccessoryWidget(accessory: widget.pet.accessories[i], color: (_selectedIndex == i) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor),
-          ),
-        );
-        accessoryWidgets.add(SizedBox(width: 10.0));
-      }
-      columnWidgets.add(SizedBox(height: 10.0));
+
+      columnWidgets.add(Text("Accessories"));
       columnWidgets.add(
-        OutlineBox(
-          padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-          child: SizedBox(
-            height: AccessoryWidget.height + 20,
-            child: ListView(
-              physics: BouncingScrollPhysics(),
-              scrollDirection: Axis.horizontal,
-              children: accessoryWidgets,
-            ),
-          ),
+        PaddingListView(
+          scrollBar: true,
+          childCrossAxisSize: AccessoryWidget.height,
+          scrollDirection: Axis.horizontal,
+          itemCount: widget.pet.accessories.length,
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (_currentAccessory != null) {
+                    _currentAccessory!.updateDocument(context);
+                  }
+                  if (_selectedIndex == index) {
+                    _selectedIndex = -1;
+                  } else {
+                    _selectedIndex = index;
+                  }
+                });
+              },
+              child: AccessoryWidget(accessory: widget.pet.accessories[index], color: (_selectedIndex == index) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor),
+            );
+          },
         ),
       );
     }
@@ -387,7 +382,7 @@ class PetWidgetMini extends StatelessWidget {
   PetWidgetMini({required this.pet, required this.color});
 
   @override
-  Widget build(BuildContext context ) {
+  Widget build(BuildContext context) {
     return OutlineBox(
       borderColor: color,
       child: Column(

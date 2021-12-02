@@ -197,15 +197,11 @@ class AssignmentList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(10),
-      child: OutlineBox(
-        child: ListView.separated(
-          physics: BouncingScrollPhysics(),
-          itemCount: _assignments.length,
-          itemBuilder: (BuildContext context, int index) {
-            return AssignmentWidget(_assignments[index]);
-          },
-          separatorBuilder: (BuildContext context, int index) => SizedBox(height: 10.0),
-        ),
+      child: PaddingListView(
+        itemCount: _assignments.length,
+        itemBuilder: (BuildContext context, int index) {
+          return AssignmentWidget(_assignments[index]);
+        },
       ),
     );
   }
@@ -286,8 +282,7 @@ class _AssignmentWidgetState extends State<AssignmentWidget> {
       Padding(
         padding: EdgeInsets.only(top: 5.0),
         child: LinearProgressIndicator(
-          value: (DateTime.now().microsecondsSinceEpoch - widget._assignment.startDate.microsecondsSinceEpoch) /
-              (widget._assignment.dueDate.microsecondsSinceEpoch - widget._assignment.startDate.microsecondsSinceEpoch),
+          value: (DateTime.now().microsecondsSinceEpoch - widget._assignment.startDate.microsecondsSinceEpoch) / (widget._assignment.dueDate.microsecondsSinceEpoch - widget._assignment.startDate.microsecondsSinceEpoch),
         ),
       ),
     ];

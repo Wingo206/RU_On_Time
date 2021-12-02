@@ -84,31 +84,51 @@ class OutlineBox extends StatelessWidget {
 }
 
 class PaddingListView extends StatelessWidget {
+  static final double scrollPadding = 20;
+  static final double itemPadding = 10;
   final int itemCount;
   final Function itemBuilder;
   final Axis scrollDirection;
+  final bool scrollBar;
+  final double childCrossAxisSize;
 
-  PaddingListView({required this.itemCount, required this.itemBuilder, this.scrollDirection = Axis.vertical});
+  PaddingListView({required this.itemCount, required this.itemBuilder, this.scrollDirection = Axis.vertical, this.scrollBar = false, this.childCrossAxisSize = 0});
 
   @override
   Widget build(BuildContext context) {
-    return Scrollbar(
-      child: Padding(
-        padding: (scrollDirection == Axis.vertical)?EdgeInsets.only(right: 10):EdgeInsets.only(bottom:10),
-        child: ListView.separated(
-          scrollDirection: scrollDirection,
-          physics: BouncingScrollPhysics(),
-          itemCount: itemCount + 2,
-          itemBuilder: (BuildContext context, int index) {
-            if (index == 0 || index == itemCount + 1) {
-              return SizedBox();
-            } else {
-              return itemBuilder(context, index - 1);
-            }
-          },
-          separatorBuilder: (BuildContext context, int index) => SizedBox(width: 10.0),
-        ),
-      ),
+    Widget w = ListView.separated(
+      scrollDirection: scrollDirection,
+      physics: BouncingScrollPhysics(),
+      itemCount: itemCount + 2,
+      itemBuilder: (BuildContext context, int index) {
+        if (index == 0 || index == itemCount + 1) {
+          return SizedBox();
+        } else {
+          return itemBuilder(context, index - 1);
+        }
+      },
+      separatorBuilder: (BuildContext context, int index) => (scrollDirection == Axis.vertical) ? SizedBox(height: itemPadding) : SizedBox(width: itemPadding),
     );
+    Widget w2 = w;
+    if (scrollBar) {
+      w2 = Scrollbar(
+        child: Padding(
+          padding: (scrollDirection == Axis.vertical) ? EdgeInsets.only(right: scrollPadding) : EdgeInsets.only(bottom: scrollPadding),
+          child: w,
+        ),
+      );
+    }
+    Widget w3;
+    if (childCrossAxisSize == 0) {
+      w3 = w2;
+    } else {
+      double totalSize = childCrossAxisSize + itemPadding * 2 + ((scrollBar) ? scrollPadding : 0);
+      if (scrollDirection == Axis.vertical) {
+        w3 = SizedBox(width: totalSize, child: w2);
+      } else {
+        w3 = SizedBox(height: totalSize, child: w2);
+      }
+    }
+    return OutlineBox(child: w3, padding: (scrollDirection == Axis.vertical) ? EdgeInsets.only(right: itemPadding, left: itemPadding) : EdgeInsets.only(bottom: itemPadding, top: itemPadding));
   }
 }
