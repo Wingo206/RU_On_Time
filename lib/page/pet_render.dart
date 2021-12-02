@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 
 import 'package:ru_on_time/data_manager.dart';
 import 'package:provider/src/provider.dart';
+import 'package:intl/intl.dart';
 
 class PetDisplay extends StatefulWidget {
   final Size size;
@@ -17,6 +18,35 @@ class PetDisplay extends StatefulWidget {
 
   @override
   _PetDisplayState createState() => _PetDisplayState();
+}
+
+void drawImage(Canvas canvas, Size size, String imageName, double cx, double cy, double scaleFactor, double angle) {
+  double scaledSize = convertDouble(512.0 * scaleFactor, size);
+  Offset c = convertOffset(Offset(256.0 + cx, 256.0 + cy), size);
+  rotate(canvas, c, angle);
+  canvas.drawImageRect(
+      ImageData.imageMap[imageName]!,
+      Rect.fromPoints(Offset(0, 0), Offset(512, 512)),
+      Rect.fromPoints(
+        Offset(c.dx - scaledSize / 2, c.dy - scaledSize / 2),
+        Offset(c.dx + scaledSize / 2, c.dy + scaledSize / 2),
+      ),
+      Paint());
+  rotate(canvas, c, -angle);
+}
+
+Offset convertOffset(Offset input, Size size) {
+  return Offset(input.dx * size.width / 512.0, input.dy * size.height / 512.0);
+}
+
+double convertDouble(double input, Size size) {
+  return input * size.width / 512.0;
+}
+
+void rotate(Canvas canvas, Offset c, double angle) {
+  canvas.translate(c.dx, c.dy);
+  canvas.rotate(angle);
+  canvas.translate(-c.dx, -c.dy);
 }
 
 class _PetDisplayState extends State<PetDisplay> with SingleTickerProviderStateMixin {
@@ -77,47 +107,103 @@ class _PetPainter extends CustomPainter {
           ..style = PaintingStyle.fill);
 
     double v = 5 * cos(value);
-    /*canvas.drawImageRect(
-        ImageData.imageDataMap[pet.type]!._image,
-        Rect.fromPoints(Offset(0, 0), Offset(512, 512)),
-        Rect.fromPoints(
-          Offset(size.width * 0.1, size.height * 0.1 + 30),
-          Offset(size.width * 0.9, size.height * 0.9 + 30),
-        ),
-        Paint());*/
-    drawImage(canvas, size, pet.type, 0, 20+v, 0.8, 0);
+    drawImage(canvas, size, pet.type, 0, 20 + v, 0.8, 0);
     for (Accessory a in pet.accessories) {
       drawImage(canvas, size, a.type, a.xPos, a.yPos + v, a.size, a.angle);
     }
   }
 
-  void drawImage(Canvas canvas, Size size, String imageName, double cx, double cy, double scaleFactor, double angle) {
-    double scaledSize = convertDouble(512.0 * scaleFactor, size);
-    Offset c = convertOffset(Offset(256.0 + cx, 256.0 + cy), size);
-    rotate(canvas, c, angle);
-    canvas.drawImageRect(
-        ImageData.imageDataMap[imageName]!._image,
-        Rect.fromPoints(Offset(0, 0), Offset(512, 512)),
-        Rect.fromPoints(
-          Offset(c.dx - scaledSize/2, c.dy - scaledSize/2),
-          Offset(c.dx + scaledSize/2, c.dy + scaledSize/2),
+  @override
+  bool shouldRepaint(CustomPainter old) {
+    return true;
+  }
+}
+
+/*
+class AccessoryList extends StatelessWidget {
+  final List<Accessory> _accessories;
+
+  AccessoryList(this._accessories);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
         ),
-        Paint());
-    rotate(canvas, c, -angle);
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          physics: BouncingScrollPhysics(),
+          children: _accessories.map((e) => AccessoryWidget(e)).toList(),
+        ),
+      ),
+    );
   }
+}
+*/
+class AccessoryWidget extends StatelessWidget {
+  final Accessory accessory;
+  final Color color;
 
-  Offset convertOffset(Offset input, Size size) {
-    return Offset(input.dx * size.width / 512.0, input.dy * size.height / 512.0);
+  AccessoryWidget(this.accessory, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(width: 2.0, color: color),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            AccessoryDisplay(size: Size(100, 100), accessory: accessory),
+            SizedBox(height: 5.0),
+            Text(ImageData.displayNameMap[accessory.type]!),
+            SizedBox(height: 5.0),
+            Text(DateFormat('MMM d, y').format(accessory.date)),
+          ],
+        ),
+      ),
+    );
   }
+}
 
-  double convertDouble(double input, Size size) {
-    return input * size.width / 512.0;
+class AccessoryDisplay extends StatelessWidget {
+  final Size size;
+  final Accessory accessory;
+
+  AccessoryDisplay({required this.size, required this.accessory});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size.width,
+      height: size.height,
+      child: CustomPaint(
+        size: size,
+        painter: _AccessoryPainter(accessory),
+      ),
+    );
   }
+}
 
-  void rotate(Canvas canvas, Offset c, double angle) {
-    canvas.translate(c.dx, c.dy);
-    canvas.rotate(angle);
-    canvas.translate(-c.dx, -c.dy);
+class _AccessoryPainter extends CustomPainter {
+  final Accessory accessory;
+
+  _AccessoryPainter(this.accessory);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+        Rect.fromPoints(Offset.zero, Offset(size.width, size.height)),
+        Paint()
+          ..color = Colors.blue
+          ..style = PaintingStyle.fill);
+    drawImage(canvas, size, accessory.type, 0, 0, 1, 0);
   }
 
   @override
@@ -134,29 +220,25 @@ Future<ui.Image> loadImage(String path) async {
 }
 
 class ImageData {
-  static final Map<String, ImageData> imageDataMap = new Map<String, ImageData>();
+  static final Map<String, ui.Image> imageMap = new Map<String, ui.Image>();
+  static final Map<String, String> displayNameMap = new Map<String, String>();
 
-  final String _name;
-  late ui.Image _image;
-
-  ImageData(this._name) {
-    loadImage('assets/' + _name + '.png').then((image) {
-      _image = image;
-      imageDataMap[_name] = this;
-    });
+  static Future<void> addData(String name, String displayName) async {
+    imageMap[name] = await loadImage('assets/' + name + '.png');
+    displayNameMap[name] = displayName;
   }
 
-  static loadImageData() {
-    ImageData("cat");
-    ImageData("dog");
-    ImageData("dragon");
-    ImageData("penguin");
-    ImageData("bandana");
-    ImageData("bowtie");
-    ImageData("collar");
-    ImageData("flower_crown");
-    ImageData("santa_hat");
-    ImageData("top_hat");
+  static Future<void> loadImageData() async {
+    await addData("cat", "Cat");
+    await addData("dog", "Dog");
+    await addData("dragon", "Dragon");
+    await addData("penguin", "Penguin");
+    await addData("bandana", "Bandana");
+    await addData("bowtie", "Bowtie");
+    await addData("collar", "Collar");
+    await addData("flower_crown", "Flower Crown");
+    await addData("santa_hat", "Santa Hat");
+    await addData("top_hat", "Top Hat");
   }
 }
 
@@ -236,15 +318,15 @@ class Accessory {
 
   Accessory.fromJson(Map<String, Object?> json, String id)
       : this(
-    type: json['type']! as String,
-    inUse: json['in use']! as bool,
-    date: DateTime.parse(json['date']! as String),
-    xPos: (json['x pos']! as num).toDouble(),
-    yPos: (json['y pos']! as num).toDouble(),
-    angle: (json['angle']! as num).toDouble(),
-    size: (json['size']! as num).toDouble(),
-    documentId: id,
-  );
+          type: json['type']! as String,
+          inUse: json['in use']! as bool,
+          date: DateTime.parse(json['date']! as String),
+          xPos: (json['x pos']! as num).toDouble(),
+          yPos: (json['y pos']! as num).toDouble(),
+          angle: (json['angle']! as num).toDouble(),
+          size: (json['size']! as num).toDouble(),
+          documentId: id,
+        );
 
   Map<String, Object?> toJson() {
     return {
@@ -259,6 +341,6 @@ class Accessory {
   }
 
   Future<void> updateDocument(BuildContext context) async {
-    context.read<DataManager>().petsCollection.doc(documentId).update(toJson());
+    context.read<DataManager>().accessoriesCollection.doc(documentId).update(toJson());
   }
 }

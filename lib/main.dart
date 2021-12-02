@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
   final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
 
   MyApp() {
-    ImageData.loadImageData();
+
   }
 
   // This widget is the root of your application.
@@ -35,8 +35,7 @@ class MyApp extends StatelessWidget {
           create: (_) => AuthenticationService(FirebaseAuth.instance),
         ),
         StreamProvider(
-          create: (context) =>
-              context.read<AuthenticationService>().authStateChanges,
+          create: (context) => context.read<AuthenticationService>().authStateChanges,
           initialData: null,
         ),
       ],
@@ -49,8 +48,7 @@ class MyApp extends StatelessWidget {
           future: _fbApp,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              print(
-                  'Failed to initialize Firebase ${snapshot.error.toString()}');
+              print('Failed to initialize Firebase ${snapshot.error.toString()}');
               return Text('Something went wrong!');
             } else if (snapshot.hasData) {
               return AuthenticationWrapper();
@@ -71,8 +69,7 @@ class AuthenticationWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
     if (firebaseUser != null) {
-      Future<DataManager> _dataManager =
-          DataManager.create(FirebaseAuth.instance);
+      Future<DataManager> _dataManager = DataManager.create(FirebaseAuth.instance);
 
       return FutureBuilder<DataManager>(
         future: _dataManager,
@@ -90,7 +87,18 @@ class AuthenticationWrapper extends StatelessWidget {
               access the Data Manager by doing context.read<DataManager>(), like
               in the AssignmentsPage's build method.*/
               create: (_) => snapshot.data!,
-              child: MyHomePage(),
+              child: FutureBuilder<void>(
+                future: ImageData.loadImageData(),
+                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                  if (snapshot.hasError) {
+                    return Text("Something went wrong");
+                  }
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return MyHomePage();
+                  }
+                  return Text("Loading Images...");
+                },
+              ),
             );
           }
           return Text("Loading...");

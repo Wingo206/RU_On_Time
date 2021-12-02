@@ -165,6 +165,8 @@ class PetWidget extends StatefulWidget {
 
 class _PetWidgetState extends State<PetWidget> {
   bool _editingName = false;
+  int _selectedIndex = -1;
+  Accessory? _currentAccessory;
 
   @override
   Widget build(BuildContext context) {
@@ -181,6 +183,164 @@ class _PetWidgetState extends State<PetWidget> {
       widget.pet.cleanliness = max(0, widget.pet.cleanliness);
       widget.pet.updateDocument(context);
     }
+    List<Widget> columnWidgets = [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(width: 48.0),
+          Expanded(
+            child: (_editingName)
+                ? Padding(
+                    padding: EdgeInsets.only(bottom: 5.0),
+                    child: TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(labelText: "Pet Name"),
+                    ),
+                  )
+                : Text(
+                    widget.pet.name,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+          ),
+          IconButton(
+            icon: Icon((_editingName) ? Icons.check : Icons.edit),
+            color: Theme.of(context).primaryColor,
+            onPressed: () {
+              setState(() {
+                if (_editingName) {
+                  if (widget.pet.name != nameController.text.trim()) {
+                    widget.pet.name = nameController.text.trim();
+                    widget.pet.updateDocument(context);
+                  }
+                }
+                _editingName = !_editingName;
+              });
+            },
+          ),
+        ],
+      ),
+      PetDisplay(
+        size: Size(250, 250),
+        pet: widget.pet,
+      ),
+    ];
+
+    if (_selectedIndex == -1) {
+      _currentAccessory = null;
+      columnWidgets.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                if (widget.pet.love < 100.0) {
+                  widget.pet.love += pettingAmount;
+                  widget.pet.love = min(widget.pet.love, 100.0);
+                  context.read<DataManager>().getUserData().then((UserData userData) {
+                    if (userData.coins > pettingCost) {
+                      userData.coins -= pettingCost;
+                      widget.pet.updateDocument(context);
+                      userData.updateDocument(context);
+                    } else {
+                      print("not enough coins");
+                    }
+                  });
+                }
+              },
+              child: Text("Pet (\$1)"),
+            ),
+            SizedBox(width: 5.0),
+            ElevatedButton(
+              onPressed: () {
+                if (widget.pet.food < 100.0) {
+                  widget.pet.food += feedingAmount;
+                  widget.pet.food = min(widget.pet.food, 100.0);
+                  context.read<DataManager>().getUserData().then((UserData userData) {
+                    if (userData.coins > feedingCost) {
+                      userData.coins -= feedingCost;
+                      widget.pet.updateDocument(context);
+                      userData.updateDocument(context);
+                    } else {
+                      print("not enough coins");
+                    }
+                  });
+                }
+              },
+              child: Text("Feed (\$2)"),
+            ),
+            SizedBox(width: 5.0),
+            ElevatedButton(
+              onPressed: () {
+                if (widget.pet.cleanliness < 100.0) {
+                  widget.pet.cleanliness += cleaningAmount;
+                  widget.pet.cleanliness = min(widget.pet.cleanliness, 100.0);
+                  context.read<DataManager>().getUserData().then((UserData userData) {
+                    if (userData.coins > cleaningCost) {
+                      userData.coins -= cleaningCost;
+                      widget.pet.updateDocument(context);
+                      userData.updateDocument(context);
+                    } else {
+                      print("not enough coins");
+                    }
+                  });
+                }
+              },
+              child: Text("Clean (\$3)"),
+            ),
+          ],
+        ),
+      );
+      columnWidgets.add(buildStatBar("Love", widget.pet.love, 100));
+      columnWidgets.add(buildStatBar("Food", widget.pet.food, 100));
+      columnWidgets.add(buildStatBar("Cleanliness", widget.pet.cleanliness, 100));
+    } else {
+      _currentAccessory = widget.pet.accessories[_selectedIndex];
+      columnWidgets.addAll(getEditMenuWidgets(context));
+    }
+
+    if (widget.pet.accessories.length > 0) {
+      List<Widget> accessoryWidgets = [SizedBox(width: 10.0)];
+      for (int i = 0; i < widget.pet.accessories.length; i++) {
+        accessoryWidgets.add(
+          Padding(
+            padding: EdgeInsets.only(top: 10.0, right: 10.0, bottom: 10.0),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (_currentAccessory != null) {
+                    _currentAccessory!.updateDocument(context);
+                  }
+                  if (_selectedIndex == i) {
+                    _selectedIndex = -1;
+                  } else {
+                    _selectedIndex = i;
+                  }
+                });
+              },
+              child: AccessoryWidget(widget.pet.accessories[i], (_selectedIndex == i) ? Theme.of(context).primaryColor : Theme.of(context).dividerColor),
+            ),
+          ),
+        );
+      }
+      columnWidgets.add(SizedBox(height: 10.0));
+      columnWidgets.add(
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(width: 2.0, color: Theme.of(context).dividerColor),
+          ),
+          child: SizedBox(
+            height: 200,
+            child: ListView(
+              physics: BouncingScrollPhysics(),
+              scrollDirection: Axis.horizontal,
+              children: accessoryWidgets,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
       child: Container(
@@ -190,119 +350,68 @@ class _PetWidgetState extends State<PetWidget> {
         ),
         child: Padding(
           padding: EdgeInsets.all(10.0),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(width: 48.0),
-                  Expanded(
-                    child: (_editingName)
-                        ? Padding(
-                            padding: EdgeInsets.only(bottom: 5.0),
-                            child: TextField(
-                              controller: nameController,
-                              decoration: InputDecoration(
-                                labelText: "Pet Name",
-                              ),
-                            ),
-                          )
-                        : Text(
-                            widget.pet.name,
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                  ),
-                  IconButton(
-                    icon: Icon((_editingName) ? Icons.check : Icons.edit),
-                    color: Theme.of(context).primaryColor,
-                    onPressed: () {
-                      setState(() {
-                        if (_editingName) {
-                          if (widget.pet.name != nameController.text.trim()) {
-                            widget.pet.name = nameController.text.trim();
-                            widget.pet.updateDocument(context);
-                          }
-                        }
-                        _editingName = !_editingName;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              PetDisplay(
-                size: Size(250, 250),
-                pet: widget.pet,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      if (widget.pet.love < 100.0) {
-                        widget.pet.love += pettingAmount;
-                        widget.pet.love = min(widget.pet.love, 100.0);
-                        context.read<DataManager>().getUserData().then((UserData userData) {
-                          if (userData.coins > pettingCost) {
-                            userData.coins -= pettingCost;
-                            widget.pet.updateDocument(context);
-                            userData.updateDocument(context);
-                          } else {
-                            print("not enough coins");
-                          }
-                        });
-                      }
-                    },
-                    child: Text("Pet (\$1)"),
-                  ),
-                  SizedBox(width: 5.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (widget.pet.food < 100.0) {
-                        widget.pet.food += feedingAmount;
-                        widget.pet.food = min(widget.pet.food, 100.0);
-                        context.read<DataManager>().getUserData().then((UserData userData) {
-                          if (userData.coins > feedingCost) {
-                            userData.coins -= feedingCost;
-                            widget.pet.updateDocument(context);
-                            userData.updateDocument(context);
-                          } else {
-                            print("not enough coins");
-                          }
-                        });
-                      }
-                    },
-                    child: Text("Feed (\$2)"),
-                  ),
-                  SizedBox(width: 5.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (widget.pet.cleanliness < 100.0) {
-                        widget.pet.cleanliness += cleaningAmount;
-                        widget.pet.cleanliness = min(widget.pet.cleanliness, 100.0);
-                        context.read<DataManager>().getUserData().then((UserData userData) {
-                          if (userData.coins > cleaningCost) {
-                            userData.coins -= cleaningCost;
-                            widget.pet.updateDocument(context);
-                            userData.updateDocument(context);
-                          } else {
-                            print("not enough coins");
-                          }
-                        });
-                      }
-                    },
-                    child: Text("Clean (\$3)"),
-                  ),
-                ],
-              ),
-              buildStatBar("Love", widget.pet.love, 100),
-              buildStatBar("Food", widget.pet.food, 100),
-              buildStatBar("Cleanliness", widget.pet.cleanliness, 100),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: columnWidgets,
+            ),
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> getEditMenuWidgets(BuildContext context) {
+    return [
+      Text("Editing: " + ImageData.displayNameMap[_currentAccessory!.type]!),
+      Slider(
+        value: _currentAccessory!.xPos,
+        min: -256,
+        max: 256,
+        onChanged: (double value) {
+          setState(() {
+            _currentAccessory!.xPos = value;
+          });
+        },
+      ),
+      Slider(
+        value: _currentAccessory!.yPos,
+        min: -256,
+        max: 256,
+        onChanged: (double value) {
+          setState(() {
+            _currentAccessory!.yPos = value;
+          });
+        },
+      ),
+      Slider(
+        value: _currentAccessory!.size,
+        min: 0,
+        max: 1,
+        onChanged: (double value) {
+          setState(() {
+            _currentAccessory!.size = value;
+          });
+        },
+      ),
+      Slider(
+        value: _currentAccessory!.angle,
+        min: -pi,
+        max: pi,
+        onChanged: (double value) {
+          setState(() {
+            _currentAccessory!.angle = value;
+          });
+        },
+      ),
+      ElevatedButton(
+        onPressed: () {
+          _currentAccessory!.updateDocument(context).then((_) => setState(() {
+                _selectedIndex = -1;
+              }));
+        },
+        child: Text("Done"),
+      ),
+    ];
   }
 
   Widget buildStatBar(String name, double value, double maxValue) {
