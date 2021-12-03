@@ -69,7 +69,7 @@ class PetsPage extends StatelessWidget {
 Future<List<Pet>> createPetList(DataManager dataManager, QuerySnapshot snapshot) async {
   List<Pet> pets = [];
   for (DocumentSnapshot document in snapshot.docs) {
-    await Pet.createFromJson(dataManager, document.data()! as Map<String, dynamic>, document.id).then((Pet p) {
+    await Pet.createFromJson(dataManager.accessoriesCollection, document.data()! as Map<String, dynamic>, document.id).then((Pet p) {
       pets.add(p);
     });
   }
@@ -108,10 +108,12 @@ class _PetWidgetState extends State<PetWidget> {
   bool _editingName = false;
   int _selectedIndex = -1;
   Accessory? _currentAccessory;
+  UserData? _userData;
 
   @override
   Widget build(BuildContext context) {
     TextEditingController nameController = TextEditingController(text: widget.pet.name);
+    DataManager dataManager = context.read<DataManager>();
     //update info for pet
     int hours = DateTime.now().difference(widget.pet.lastUpdate).inHours;
     if (hours > 0) {
@@ -128,7 +130,47 @@ class _PetWidgetState extends State<PetWidget> {
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(width: 48.0),
+          (_selectedIndex == -1)
+              ? StreamBuilder<DocumentSnapshot>(
+                  stream: dataManager.userRef.snapshots(),
+                  builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Something went wrong');
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return SizedBox(width: 48.0);
+                    }
+                    _userData = UserData.fromJson(snapshot.data!.data() as Map<String, dynamic>, snapshot.data!.id);
+                    if (_userData == null) {
+                      return SizedBox(width: 48.0);
+                    } else {
+                      if (_userData!.favorite == widget.pet.documentId!) {
+                        return IconButton(
+                          onPressed: () {
+                            _userData!.favorite = "";
+                            _userData!.updateDocument(context).then((_) {
+                              setState(() {});
+                            });
+                          },
+                          color: Theme.of(context).primaryColor,
+                          icon: Icon(Icons.star),
+                        );
+                      } else {
+                        return IconButton(
+                          onPressed: () {
+                            _userData!.favorite = widget.pet.documentId!;
+                            _userData!.updateDocument(context).then((_) {
+                              setState(() {});
+                            });
+                          },
+                          color: Theme.of(context).primaryColor,
+                          icon: Icon(Icons.star_border),
+                        );
+                      }
+                    }
+                  },
+                )
+              : SizedBox(width: 48.0),
           Expanded(
             child: (_editingName)
                 ? Padding(
@@ -379,9 +421,9 @@ class _PetWidgetState extends State<PetWidget> {
 class PetWidgetMini extends StatelessWidget {
   static final double height = 130;
   final Pet pet;
-  final Color color;
+  Color? color;
 
-  PetWidgetMini({required this.pet, required this.color});
+  PetWidgetMini({required this.pet, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -394,6 +436,69 @@ class PetWidgetMini extends StatelessWidget {
           PetDisplay(size: Size(100, 100), pet: pet),
         ],
       ),
+    );
+  }
+}
+
+class FavoritePetWidget extends StatefulWidget {
+  final UserData _userData;
+
+  FavoritePetWidget(this._userData);
+
+  @override
+  _FavoritePetWidgetState createState() => _FavoritePetWidgetState();
+}
+
+class _FavoritePetWidgetState extends State<FavoritePetWidget> {
+  Pet? _favorite;
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget._userData.favorite == "") {
+      return Center(
+        child: OutlineBox(
+          child: SizedBox(
+            width: 100,
+            height: PetWidgetMini.height,
+            child: Center(
+              child: Text("No Favorite Set"),
+            ),
+          ),
+        ),
+      );
+    }
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection("users").doc(widget._userData.documentID).collection("pets").doc(widget._userData.favorite).get(),
+      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Text('Something went wrong');
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          //return Text("Loading");
+        } else {
+          Pet.createFromJson(FirebaseFirestore.instance.collection("users").doc(widget._userData.documentID).collection("accessories"), snapshot.data!.data() as Map<String, dynamic>, snapshot.data!.id).then((value) {
+            setState(() {
+              _favorite = value;
+            });
+          });
+        }
+        if (_favorite == null) {
+          return Center(
+            child: OutlineBox(
+              child: SizedBox(
+                width: 100,
+                height: PetWidgetMini.height,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            ),
+          );
+        }
+        return Center(
+          child: PetWidgetMini(pet: _favorite!),
+        );
+      },
     );
   }
 }

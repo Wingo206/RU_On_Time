@@ -38,6 +38,8 @@ class Constants {
     await addData("flower_crown", "Flower Crown");
     await addData("santa_hat", "Santa Hat");
     await addData("top_hat", "Top Hat");
+
+    await addData("background", "");
   }
 }
 
@@ -64,11 +66,12 @@ class Pet {
     this.documentId,
   });
 
-  static Future<Pet> createFromJson(DataManager manager, Map<String, Object?> json, String id) async {
+
+  static Future<Pet> createFromJson(CollectionReference accessoriesCollection, Map<String, Object?> json, String id) async {
     List<String> ids = (json['accessories'] as List<dynamic>).map((dynamic d) => d as String).toList();
     List<Accessory> accessories = [];
     for (String id in ids) {
-      await manager.accessoriesCollection.doc(id).get().then((DocumentSnapshot document) {
+      await accessoriesCollection.doc(id).get().then((DocumentSnapshot document) {
         accessories.add(Accessory.fromJson(document.data()! as Map<String, dynamic>, id));
       });
     }
@@ -185,6 +188,8 @@ class UserData {
   int gemsTotal;
   double xp;
   int completed;
+  String favorite;
+  DateTime startDate;
   String? documentID;
 
   UserData({
@@ -196,6 +201,8 @@ class UserData {
     required this.gemsTotal,
     required this.xp,
     required this.completed,
+    required this.favorite,
+    required this.startDate,
     this.documentID,
   });
 
@@ -209,6 +216,8 @@ class UserData {
           gemsTotal: json['gems total']! as int,
           xp: (json['xp']! as num).toDouble(),
           completed: json['completed']! as int,
+          favorite: json['favorite']! as String,
+          startDate: DateTime.parse(json['start date']! as String),
           documentID: id,
         );
 
@@ -222,6 +231,8 @@ class UserData {
       'gems total': gemsTotal,
       'xp': xp,
       'completed': completed,
+      'favorite': favorite,
+      'start date': startDate.toIso8601String(),
     };
   }
 
@@ -236,6 +247,6 @@ class UserData {
   }
 
   Future<void> updateDocument(BuildContext context) async {
-    context.read<DataManager>().usersCollection.doc(documentID).update(toJson());
+    DataManager.usersCollection.doc(documentID).update(toJson());
   }
 }

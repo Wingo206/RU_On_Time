@@ -8,7 +8,8 @@ import 'data.dart';
 class DataManager {
   String uid;
 
-  CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
+  static CollectionReference usersCollection = FirebaseFirestore.instance.collection('users');
+  static Query usersQuery = usersCollection.orderBy("xp", descending: true);
 
   DocumentReference get userRef => usersCollection.doc(uid);
 
@@ -40,10 +41,12 @@ class DataManager {
             email: _firebaseAuth.currentUser!.email!,
             hearts: 0,
             heartsTotal: 0,
-            gems: 0,
+            gems: 50,
             gemsTotal: 0,
             xp: 0,
             completed: 0,
+            favorite: "",
+            startDate: DateTime.now(),
           ).toJson(),
         );
       }

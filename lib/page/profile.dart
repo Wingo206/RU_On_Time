@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
 import 'package:ru_on_time/authentication_service.dart';
+import 'package:ru_on_time/page/pets.dart';
 
 import '../data.dart';
 import '../util_widgets.dart';
@@ -20,7 +21,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     DataManager dataManager = context.read<DataManager>();
     return StreamBuilder<DocumentSnapshot>(
-      stream: dataManager.usersCollection.doc(dataManager.uid).snapshots(),
+      stream: DataManager.usersCollection.doc(dataManager.uid).snapshots(),
       builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.hasError) {
           return Text('Something went wrong');
@@ -41,6 +42,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget buildDisplay(BuildContext context) {
+    DataManager dataManager = context.read<DataManager>();
     TextEditingController usernameController = TextEditingController(text: _userData!.name);
     return Scaffold(
       body: ListView(
@@ -111,7 +113,8 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-          buildButton(context, ((_userData!.xp / 100).round() + 1).toString(), "Level:"),
+          FavoritePetWidget(_userData!),
+          buildButton(context, (_userData!.xp / 100).floor().toString(), "Level:"),
           buildStatBar("XP", (_userData!.xp.round() % 100), 100),
           buildButton(context, _userData!.completed.toString(), "Assignments Completed:"),
           buildButton(context, _userData!.heartsTotal.toString(), "Total Hearts Earned:"),
@@ -129,7 +132,6 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-
   Widget buildButton(BuildContext context, String value, String text) {
     return MaterialButton(
       padding: EdgeInsets.all(10.0),

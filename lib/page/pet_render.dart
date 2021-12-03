@@ -97,12 +97,8 @@ class _PetPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(
-        Rect.fromPoints(Offset.zero, Offset(size.width, size.height)),
-        Paint()
-          ..color = Colors.blue
-          ..style = PaintingStyle.fill);
 
+    drawImage(canvas, size, "background", 0, 0, 1, 0);
     double v = 5 * cos(value);
     drawImage(canvas, size, pet.type, 0, 20 + v, 0.8, 0);
     for (Accessory a in pet.accessories) {
