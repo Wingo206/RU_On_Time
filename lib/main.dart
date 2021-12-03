@@ -120,10 +120,10 @@ class _MyHomePageState extends State<MyHomePage> {
   int currentIndex = 0;
   final screens = [
     ProfilePage(),
-    ShopPage(),
-    PetsPage(),
-    CalendarPage(),
     AssignmentsPage(),
+    CalendarPage(),
+    PetsPage(),
+    ShopPage(),
     LeaderboardPage(),
   ];
 
@@ -150,13 +150,8 @@ class _MyHomePageState extends State<MyHomePage> {
             backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.store),
-            label: 'Shop',
-            backgroundColor: Colors.blue,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.house_outlined),
-            label: 'Pets',
+            icon: Icon(Icons.assignment_rounded),
+            label: 'Assign',
             backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
@@ -165,13 +160,18 @@ class _MyHomePageState extends State<MyHomePage> {
             backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_rounded),
-            label: 'Assign',
+            icon: Icon(Icons.house_outlined),
+            label: 'Pets',
+            backgroundColor: Colors.blue,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.store),
+            label: 'Shop',
             backgroundColor: Colors.blue,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.leaderboard_rounded),
-            label: 'Leaderboard',
+            label: 'Ranking',
             backgroundColor: Colors.blue,
           ),
         ],

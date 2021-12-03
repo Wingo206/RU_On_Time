@@ -118,7 +118,7 @@ class _PetWidgetState extends State<PetWidget> {
     int hours = DateTime.now().difference(widget.pet.lastUpdate).inHours;
     if (hours > 0) {
       widget.pet.lastUpdate = DateTime.now();
-      widget.pet.love -= hours / 24.0 * 3.0;
+      widget.pet.love -= hours / 24.0 * 10.0;
       widget.pet.love = max(0, widget.pet.love);
       widget.pet.food -= hours / 24.0 * 10.0 * (1 - (widget.pet.love / 100.0));
       widget.pet.food = max(0, widget.pet.food);
