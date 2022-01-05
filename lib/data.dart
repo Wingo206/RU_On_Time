@@ -17,8 +17,8 @@ Future<ui.Image> loadImage(String path) async {
 class Constants {
   static final List<String> pets = ["cat", "dog", "dragon", "penguin"];
   static final List<int> petPrices = [50, 50, 80, 60];
-  static final List<String> accessories = ["bandana", "bowtie", "collar", "flower_crown", "santa_hat", "top_hat"];
-  static final List<int> accessoryPrices = [10, 10, 10, 20, 20, 20];
+  static final List<String> accessories = ["heart", "star", "butterfly", "bandana", "bowtie", "collar", "flower_crown", "santa_hat", "top_hat"];
+  static final List<int> accessoryPrices = [15, 15, 20, 20, 20, 20, 25, 30, 30];
   static final Map<String, ui.Image> imageMap = new Map<String, ui.Image>();
   static final Map<String, String> displayNameMap = new Map<String, String>();
 
@@ -34,9 +34,12 @@ class Constants {
     await addData("penguin", "Penguin");
     await addData("bandana", "Bandana");
     await addData("bowtie", "Bowtie");
+    await addData("butterfly", "Butterfly");
     await addData("collar", "Collar");
     await addData("flower_crown", "Flower Crown");
+    await addData("heart", "Heart");
     await addData("santa_hat", "Santa Hat");
+    await addData("star", "Star");
     await addData("top_hat", "Top Hat");
 
     await addData("background", "");

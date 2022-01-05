@@ -348,6 +348,7 @@ class _PetWidgetState extends State<PetWidget> {
     return [
       Text("Editing: " + Constants.displayNameMap[_currentAccessory!.type]!),
       Slider(
+        label: "X Position",
         value: _currentAccessory!.xPos,
         min: -256,
         max: 256,
@@ -358,6 +359,7 @@ class _PetWidgetState extends State<PetWidget> {
         },
       ),
       Slider(
+        label: "Y Position",
         value: _currentAccessory!.yPos,
         min: -256,
         max: 256,
@@ -368,6 +370,7 @@ class _PetWidgetState extends State<PetWidget> {
         },
       ),
       Slider(
+        label: "Size",
         value: _currentAccessory!.size,
         min: 0,
         max: 1,
@@ -378,6 +381,7 @@ class _PetWidgetState extends State<PetWidget> {
         },
       ),
       Slider(
+        label: "Angle",
         value: _currentAccessory!.angle,
         min: -pi,
         max: pi,
