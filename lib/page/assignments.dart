@@ -19,7 +19,7 @@ class AssignmentsPage extends StatefulWidget {
 
 class _AssignmentsPageState extends State<AssignmentsPage> {
   bool _showForm = false;
-  int _showIndex = 0;
+  int _showIndex = 1;
   final List<String> showOptions = ["All Assignments", "Incomplete", "Completed"];
   AssignmentForm _currentForm = AssignmentForm();
   List<Assignment> _assignments = [];
@@ -133,6 +133,8 @@ class _AssignmentFormState extends State<AssignmentForm> {
       _nameController = TextEditingController(text: initialAssignment.name);
     } else {
       _nameController = TextEditingController();
+      DateTime time = _assignmentDueDate.toLocal();
+      _assignmentDueDate = new DateTime(time.year, time.month, time.day, 23, 59, 0, 0, 0);
     }
   }
 
